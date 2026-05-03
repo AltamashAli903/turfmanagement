@@ -57,7 +57,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/turfmanagement/" >
       <Routes>
 
           {/* { 🌐 PUBLIC WEBSITE */}
