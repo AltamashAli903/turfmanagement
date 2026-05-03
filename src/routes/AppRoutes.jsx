@@ -53,19 +53,19 @@ import Home from "../pages/PublicPages/Home";
 
 /* LAYOUTS */
 import DashboardLayout from "../layouts/DashboardLayout";
-import PublicLayout from "../layouts/PublicLayout";
+// import PublicLayout from "../layouts/PublicLayout";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* { 🌐 PUBLIC WEBSITE */}
-        <Route path="/" element={
-          <PublicLayout>
-            <Home />
-          </PublicLayout>
-        } />
+          {/* { 🌐 PUBLIC WEBSITE */}
+          {/* <Route path="/" element={ */}
+            {/* <PublicLayout> */}
+              {/* <Home /> */}
+            {/* </PublicLayout> */}
+          {/* } /> */}
 
         {/* <Route path="/turfs" element={
           <PublicLayout>
@@ -93,6 +93,7 @@ export default function AppRoutes() {
 
         {/* 🔐 AUTH */}
         <Route path="/admin/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/admin/register" element={<Register />} />
 
         {/* 🔒 ADMIN PANEL */}

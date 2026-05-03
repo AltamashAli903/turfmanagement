@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getOwnerTurfs } from "../services/turfService";
+import { getOwnerTurfs } from "../../services/turfService";
 import { MapPin, Clock } from "lucide-react";
-import { formatTo12Hour } from "../utils/timeFormat";
+import { formatTo12Hour } from "../../utils/timeFormat";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
