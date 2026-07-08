@@ -5,13 +5,7 @@ const Home = () => {
   return (
     <>
       <Navbar />
-
-      {/* Hero Section */}
-      {/* Featured Turf */}
-      {/* Popular Sports */}
-      {/* Cities */}
-      {/* Testimonials */}
-
+      This is my home page
       <Footer />
     </>
   );
