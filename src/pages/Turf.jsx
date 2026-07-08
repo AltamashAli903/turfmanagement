@@ -198,8 +198,9 @@ export default function Turf() {
                     className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                   >
                     <img
-                      src={`http://192.168.1.15:4500/uploads/turfs/${turf.cover_image}`}
-                      //  baseURL: "https://turf-backend-mtku.onrender.com/api"
+                      // src={`http://192.168.1.15:4500/uploads/turfs/${turf.cover_image}`}
+                      src={`https://turf-backend-mtku.onrender.com/uploads/turfs/${turf.cover_image}`}
+                      
                       alt={turf.turf_name}
                       className="w-full h-40 object-cover rounded-xl mb-4"
                     />
