@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { registerOwner } from "../../services/ownerService";
+import API from "../api/axios";
 import Swal from "sweetalert2";
-import grass from "../../assets/grass.jpg";
+import grass from "../assets/grass.jpg";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Register() {
 
@@ -11,6 +13,7 @@ export default function Register() {
     phone: "",
     password: ""
   });
+  const navigate = useNavigate();
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -70,59 +73,51 @@ const handleChange = (e) => {
 
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    e.preventDefault();
+  if (!validate()) return;
 
-    if (!validate()) return;
+  try {
+    setLoading(true);
 
-    try {
+    const res = await API.post("/owner/register", form);
 
-      setLoading(true);
+    const ownerCode = res.data.data[0].owner_code;
 
-      const res = await registerOwner(form);
+    Swal.fire({
+      title: "🎉 Registration Successful!",
+      text: `Your Owner Code is ${ownerCode}`,
+      icon: "success",
+      background: "#f0fdf4",
+      color: "#1f2937",
+      confirmButtonText: "Continue",
+      confirmButtonColor: "#15803d",
+    });
 
+    setForm({
+      owner_name: "",
+      email: "",
+      phone: "",
+      password: "",
+    });
 
-const ownerCode = res.data.data[0].owner_code;
-
-Swal.fire({
-  title: "🎉 Registration Successful!",
-  icon: "success",
-  background: "#f0fdf4",
-  color: "#1f2937",
-  confirmButtonText: "Continue",
-  confirmButtonColor: "#15803d",
-  showClass: {
-    popup: "animate__animated animate__zoomIn"
-  },
-  hideClass: {
-    popup: "animate__animated animate__zoomOut"
-  }
-});
-
-
-
-      // Reset form
-      setForm({
-        owner_name: "",
-        email: "",
-        phone: "",
-        password: ""
-      });
-
-      // Block button for 3 seconds
-      setTimeout(() => {
-        setLoading(false);
-      }, 3000);
-
-    } catch (error) {
-
-      alert("Registration failed");
+    setTimeout(() => {
       setLoading(false);
+    }, 3000);
 
-    }
+    navigate("/login");
 
-  };
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Registration Failed",
+      text: error?.response?.data?.message || "Something went wrong.",
+    });
+
+    setLoading(false);
+  }
+};
 
   return (
 
