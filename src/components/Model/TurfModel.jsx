@@ -4,6 +4,7 @@ export default function TurfModal({
   form,
   handleChange,
   handleSubmit,
+    handleEnter,
   coverImage,
   setCoverImage,
   setOpenModal,
@@ -27,6 +28,7 @@ export default function TurfModal({
                           name="turf_name"
                           value={form.turf_name}
                           onChange={handleChange}
+                          onKeyDown={handleEnter}
                           placeholder="Turf Name"
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                           required
@@ -37,6 +39,7 @@ export default function TurfModal({
                         <input
                           name="sport_type"
                           value={form.sport_type}
+                            onKeyDown={handleEnter}
                           onChange={handleChange}
                           placeholder="Sport Type"
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
@@ -48,6 +51,7 @@ export default function TurfModal({
                         <input
                           name="location"
                           value={form.location}
+                            onKeyDown={handleEnter}
                           onChange={handleChange}
                           placeholder="Location"
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
@@ -60,6 +64,7 @@ export default function TurfModal({
                           name="address"
                           value={form.address}
                           onChange={handleChange}
+                            onKeyDown={handleEnter}
                           placeholder="Address"
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                           required
@@ -73,6 +78,7 @@ export default function TurfModal({
                           type="time"
                           name="opening_time"
                           value={form.opening_time}
+                            onKeyDown={handleEnter}
                           onChange={handleChange}
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                         />
@@ -86,6 +92,7 @@ export default function TurfModal({
                           type="time"
                           name="closing_time"
                           value={form.closing_time}
+                            onKeyDown={handleEnter}
                           onChange={handleChange}
                           className="w-full border border-slate-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                         />
@@ -101,6 +108,7 @@ export default function TurfModal({
                           type="file"
                           accept="image/*"
                           onChange={(e) => setCoverImage(e.target.files[0])}
+                            onKeyDown={handleEnter}
                           className="w-full border border-slate-300 rounded-lg px-3 py-2"
 
                         />
@@ -115,6 +123,7 @@ export default function TurfModal({
                           name="description"
                           value={form.description}
                           onChange={handleChange}
+                            onKeyDown={handleEnter}
                           rows={1}
                           // placeholder="Description"
                           className="w-full rounded-lg border border-slate-300 px-3 py-2 resize-none focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition"

@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 
 export default function Bookings() { 
   const [collapsed, setCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
@@ -51,23 +52,26 @@ export default function Bookings() {
 
     return (
         <div className="flex min-h-screen bg-gray-100">
-            <Sidebar
+             <Sidebar
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
             />
 
             <div className="flex-1 flex flex-col">
-                <Header />
+                <Header 
+                setSidebarOpen={setSidebarOpen}/>
 
-                <main className="flex-1 bg-white p-5">
+                <main className="flex-1 bg-white pt-4 pl-8">
                     <div className="space-y-6">
 
                         {/* HEADER */}
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-900">
+                            <h1 className="text-2xl font-bold text-slate-900">
                                 Bookings
                             </h1>
-                            <p className="text-slate-500 mt-1">
+                            <p className="text-slate-500 ">
                                 Manage and track all turf bookings
                             </p>
                         </div>

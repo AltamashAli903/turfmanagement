@@ -49,81 +49,87 @@ const handleSubmit = async (e) => {
 
     <>
       {toast && (
-        <Toast
+        <Toast  
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />
       )}
       <div
-        className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${grass})` }}
-      >
-
-        {/* Green Overlay */}
-        <div className="absolute inset-0 bg-black/40"></div>
-
-        {/* Login Card */}
-        <div className="relative bg-white/95 backdrop-blur-lg w-full max-w-md p-8 rounded-2xl shadow-2xl">
-
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">
-            Admin Login
-          </h2>
-
-          <p className="text-center text-gray-600 mb-6">
-            Turf Booking Management
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            <input
-              name="login_id"
-              placeholder="Email / Phone"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              onChange={handleChange}
-              required
-            />
-
-            <button
-              className="w-full bg-green-700 text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition duration-300"
-            >
-              Sign In
-            </button>
-          
-
-            <div className="text-center text-gray-600 ">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => navigate("/register")}
-                className="font-semibold text-black hover:text-green-900 hover:underline transition-colors"
-              >
-                Sign up
-              </button>
-            </div>
-
-             <button
-  type="button"
-  onClick={() => navigate("/forgot-password")}
-  className="block mx-auto font-semibold text-black hover:text-green-900 hover:underline transition-colors"
+  className="relative flex min-h-screen items-center justify-center bg-cover bg-center px-4 py-8 sm:px-6   lg:px-8"
+  style={{ backgroundImage: `url(${grass})` }}
 >
-  Forgot Password?
-</button>
+  {/* Overlay */}
+  <div className="absolute inset-0 bg-black/50"></div>
 
-          </form>
+  {/* Login Card */}
+  <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg rounded-3xl bg-white/95 p-6 shadow-2xl backdrop-blur-lg sm:p-8">
 
-        </div>
+    <div className="mb-8 text-center">
+      <h1 className="text-2xl font-bold text-slate-800 sm:text-3xl">
+        Admin Login
+      </h1>
+
+      <p className="mt-2 text-sm text-slate-500 sm:text-base">
+        Turf Booking Management
+      </p>
+    </div>
+
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-5"
+    >
+
+      <input
+        name="login_id"
+        placeholder="Email / Phone"
+        onChange={handleChange}
+        required
+        className="h-12 w-full rounded-xl border border-slate-300 px-4 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-600 sm:h-13 sm:text-base"
+      />
+
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        onChange={handleChange}
+        required
+        className="h-12 w-full rounded-xl border border-slate-300 px-4 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-600 sm:h-13 sm:text-base"
+      />
+
+      <button
+        className="h-12 w-full rounded-xl bg-green-700 text-base font-semibold text-white transition hover:bg-green-800 sm:h-13"
+      >
+        Sign In
+      </button>
+
+      <div className="space-y-3 pt-2 text-center">
+
+        <p className="text-sm text-slate-600">
+          Don't have an account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/register")}
+            className="font-semibold text-green-700 hover:underline"
+          >
+            Sign Up
+          </button>
+        </p>
+
+        <button
+          type="button"
+          onClick={() => navigate("/forgot-password")}
+          className="text-sm font-medium text-slate-700 hover:text-green-700 hover:underline"
+        >
+          Forgot Password?
+        </button>
 
       </div>
+
+    </form>
+
+  </div>
+</div>
 
     </>
   );

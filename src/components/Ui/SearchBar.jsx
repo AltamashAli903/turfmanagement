@@ -4,7 +4,7 @@ export default function SearchBar() {
 
       <input
         type="text"
-        placeholder="Search by turf name or location..."
+        placeholder="Search by turf name or area ..."
         className="flex-1 px-6 py-4 text-slate-700 outline-none"
       />
 

@@ -4,14 +4,21 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { formatTo12Hour, convertTo24Hour } from "../utils/timeFormat";
 import TurfModal from "../components/Model/TurfModel";
+import GalleryModal from "../components/Model/GalleryModal";
+import { Images } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Turf() {
-   const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [turfs, setTurfs] = useState([]);
   const [openModal, setOpenModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [coverImage, setCoverImage] = useState(null);
+  const navigate = useNavigate();
   const url = ""
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [selectedTurf, setSelectedTurf] = useState(null);
 
   const [form, setForm] = useState({
     turf_id: "",
@@ -57,6 +64,24 @@ export default function Turf() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+  const handleEnter = (e) => {
+    if (e.key !== "Enter") return;
+
+    e.preventDefault();
+
+    const elements = [...e.target.form.elements].filter(
+      (el) =>
+        !el.disabled &&
+        el.type !== "hidden" &&
+        el.type !== "submit"
+    );
+
+    const index = elements.indexOf(e.target);
+
+    if (index > -1 && index < elements.length - 1) {
+      elements[index + 1].focus();
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -134,6 +159,14 @@ export default function Turf() {
     });
   };
 
+  const openGallery = (turf) => {
+
+    setSelectedTurf(turf);
+
+    setGalleryOpen(true);
+
+  };
+
   const resetForm = () => {
     setForm({
       turf_id: "",
@@ -149,27 +182,29 @@ export default function Turf() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
+   <div className="flex h-screen overflow-hidden bg-white">
+       <Sidebar
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
       />
 
-      <div className="flex-1 flex flex-col">
-        <Header />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header setSidebarOpen={setSidebarOpen} />
 
-        <main className="flex-1 bg-white p-5">
+        <main className="flex-1 overflow-y-auto bg-white pl-8 pt-4">
           <div>
 
             {/* HEADER */}
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900">
+                <h1 className="text-2xl font-bold text-slate-900">
                   Turf Management ({turfs.length})
                 </h1>
-                {/* <p className="text-slate-500 text-sm mt-1">
+                <p className="text-slate-500 text-sm mt-1">
             Manage all your turfs
-          </p> */}
+          </p>
               </div>
 
               <button
@@ -178,7 +213,7 @@ export default function Turf() {
                   setIsEdit(false);
                   setOpenModal(true);
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-all duration-300"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 mr-4 py-2 rounded-xl transition-all duration-300"
               >
                 + Add Turf
               </button>
@@ -190,31 +225,31 @@ export default function Turf() {
                 No Turf Found
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3">
 
                 {turfs.map((turf) => (
                   <div
                     key={turf.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                    className="bg-white border border-slate-200 rounded-2xl p-0.5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                   >
                     <img
-                      // src={`http://192.168.1.15:4500/uploads/turfs/${turf.cover_image}`}
-                      src={`https://turf-backend-mtku.onrender.com/uploads/turfs/${turf.cover_image}`}
-                      
+                      src={`http://192.168.1.17:4500/uploads/turfs/${turf.cover_image}`}
+                      // src={`https://turf-backend-mtku.onrender.com/uploads/turfs/${turf.cover_image}`}
+
                       alt={turf.turf_name}
-                      className="w-full h-40 object-cover rounded-xl mb-4"
+                      className="w-full h-44 md:h-40 object-cover rounded-xl mb-2"
                     />
 
-                    <div>
-                      <h2 className="text-sm font-semibold text-slate-900">
+                    <div className="p-2">
+                      <h2 className="text-xl font-semibold text-slate-900">
                         {turf.turf_name}
                       </h2>
 
-                      <p className="text-slate-500 text-xs mt-1">
+                      <p className="text-slate-500 text-lg mt-1">
                         📍 {turf.location}
                       </p>
 
-                      <p className="text-slate-500 text-xs">
+                      <p className="text-slate-500 text-lg">
                         🏏 {turf.sport_type}
                       </p>
 
@@ -222,25 +257,39 @@ export default function Turf() {
                         {formatTo12Hour(turf.opening_time)} - {formatTo12Hour(turf.closing_time)}
                       </p>
 
-                      <span className="inline-block mt-3 px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                      {/* <span className="inline-block mt-3 px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">
                         {turf.approval_status}
-                      </span>
+                      </span> */}
                     </div>
 
-                    <div className="flex gap-2 mt-5">
+                    <div className="grid grid-cols-3 gap-2 mt-1 pb-5 pl-5 pr-5 pt-0">
 
                       <button
                         onClick={() => handleEdit(turf)}
-                        className="flex-1 bg-white border text-slate-700 hover:bg-slate-100 py-2 rounded-xl text-sm transition"
+                        className="rounded-xl border py-2 hover:bg-slate-100"
                       >
                         Edit
                       </button>
 
                       <button
                         onClick={() => handleDelete(turf.id)}
-                        className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-xl text-sm transition"
+                        className="rounded-xl bg-red-50 text-red-600 hover:bg-red-100"
                       >
                         Delete
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          navigate(`/turf/gallery/${turf.id}`, {
+                            state: {
+                              turfName: turf.turf_name,
+                            },
+                          })
+                        }
+                        className="flex items-center justify-center gap-2 rounded-xl border border-emerald-900 py-2 text-emerald-900 hover:bg-emerald-50 transition"
+                      >
+                        {/* <Images size={16} /> */}
+                        Gallery
                       </button>
 
                     </div>
@@ -253,15 +302,22 @@ export default function Turf() {
 
             {/* MODAL */}
             <TurfModal
-  open={openModal}
-  isEdit={isEdit}
-  form={form}
-  handleChange={handleChange}
-  handleSubmit={handleSubmit}
-  coverImage={coverImage}
-  setCoverImage={setCoverImage}
-  setOpenModal={setOpenModal}
-/>
+              open={openModal}
+              isEdit={isEdit}
+              form={form}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              handleEnter={handleEnter}
+              coverImage={coverImage}
+              setCoverImage={setCoverImage}
+              setOpenModal={setOpenModal}
+            />
+
+            <GalleryModal
+              open={galleryOpen}
+              turf={selectedTurf}
+              setOpen={setGalleryOpen}
+            />
 
           </div>
         </main>

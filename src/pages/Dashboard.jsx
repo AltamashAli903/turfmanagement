@@ -5,7 +5,8 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 export default function Dashboard() {
-  const [collapsed, setCollapsed] = useState(false);
+const [collapsed, setCollapsed] = useState(false);
+const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({});
   const [chartData, setChartData] = useState([]);
 
@@ -32,22 +33,26 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+   <div className="flex h-screen overflow-hidden bg-white">
       <Sidebar
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-      />
+    collapsed={collapsed}
+    setCollapsed={setCollapsed}
+    sidebarOpen={sidebarOpen}
+    setSidebarOpen={setSidebarOpen}
+/>
 
-      <div className="flex-1 flex flex-col">
-        <Header />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header
+    setSidebarOpen={setSidebarOpen}
+/>
 
-        <main className="flex-1 bg-white p-5">
+        <main className="flex-1 overflow-y-auto bg-white pl-8 pt-4">
           <div className="space-y-6">
 
             {/* HEADER */}
             <div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold text-slate-900">
                   Dashboard
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">
@@ -58,7 +63,7 @@ export default function Dashboard() {
             </div>
 
             {/* STATS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
               <StatCard
                 title="Turfs"
@@ -72,11 +77,11 @@ export default function Dashboard() {
                 icon={<CalendarDays size={22} />}
               />
 
-              <StatCard
+              {/* <StatCard
                 title="Active"
                 value={stats.active}
                 icon={<CheckCircle size={22} />}
-              />
+              /> */}
 
               <StatCard
                 title="Booked"

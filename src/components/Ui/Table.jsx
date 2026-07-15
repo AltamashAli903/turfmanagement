@@ -8,7 +8,7 @@ export default function Table({
     <div className="bg-white border border-slate-200 mt-5 rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-600 hover:bg-emerald-50">
+          <thead className="bg-emerald-900 text-white hover:bg-emerald-900">
             <tr>
               {columns.map((col) => (
                 <th
@@ -26,7 +26,7 @@ export default function Table({
               data.map((row, index) => (
                 <tr
                   key={row.id || index}
-                  className="hover:bg-slate-50 transition"
+                  className="transition"
                 >
                   {columns.map((col) => (
                     <td
