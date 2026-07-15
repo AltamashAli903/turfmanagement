@@ -102,7 +102,7 @@ export default function SlotModal({
             </button>
 
             <button disabled={loading}
-            className="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition">
+            className="px-4 py-2 rounded-xl bg-emerald-800 text-white hover:bg-emerald-700 transition">
               {loading
                 ? "Processing..."
                 : isEdit

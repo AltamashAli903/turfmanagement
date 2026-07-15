@@ -55,7 +55,7 @@ export default function Home() {
         id="explore"
         className="bg-white py-20"
       >
-        <div className="mx-auto max-w-7xl px-5">
+        <div className="mx-auto max-w-[92%] px-5">
 
           <SectionTitle
             badge="Explore"
@@ -69,7 +69,7 @@ export default function Home() {
             <div className="relative mt-16">
               {/* Left Arrow */}
               <button
-                className="custom-prev absolute left-[-18px] top-1/2 z-30 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-emerald-500 hover:text-white">
+                className="custom-prev absolute left-[-35px] lg:left-[-50px] top-1/2 z-30 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-emerald-500 hover:text-white">
                 <ChevronLeft size={20} />
               </button>
 
@@ -116,7 +116,7 @@ export default function Home() {
 
               {/* Right Arrow */}
               <button
-                className="custom-next absolute right-[-18px] top-1/2 z-30 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-emerald-500 hover:text-white"
+                className="custom-next absolute right-[-30px] lg:right-[-50px] top-1/2 z-30 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-emerald-500 hover:text-white"
               >
                 <ChevronRight size={20} />
               </button>

@@ -293,7 +293,7 @@ export default function Sidebar({
                   }
 
                                 ${active
-                    ? "bg-green-50 text-green-700"
+                    ? "bg-slate-100 text-black"
                     : "hover:bg-slate-100"
                   }`}
               >

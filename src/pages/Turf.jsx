@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../api/axios";
+import API, { IMAGE_URL } from "../api/axios";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { formatTo12Hour, convertTo24Hour } from "../utils/timeFormat";
@@ -213,7 +213,7 @@ export default function Turf() {
                   setIsEdit(false);
                   setOpenModal(true);
                 }}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 mr-4 py-2 rounded-xl transition-all duration-300"
+                className="bg-emerald-800 hover:bg-emerald-700 mt-5 text-white px-6 mr-4 py-2 rounded-xl transition-all duration-300"
               >
                 + Add Turf
               </button>
@@ -225,7 +225,7 @@ export default function Turf() {
                 No Turf Found
               </div>
             ) : (
-              <div className="grid gap-6 pt-8 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 pt-6 sm:grid-cols-2 lg:grid-cols-3">
 
                 {turfs.map((turf) => (
                   <div
@@ -233,9 +233,7 @@ export default function Turf() {
                     className="bg-white border border-slate-200 rounded-2xl p-0.5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                   >
                     <img
-                      src={`http://192.168.1.17:4500/uploads/turfs/${turf.cover_image}`}
-                      // src={`https://turf-backend-mtku.onrender.com/uploads/turfs/${turf.cover_image}`}
-
+                      src={`${IMAGE_URL}/uploads/turfs/${turf.cover_image}`}
                       alt={turf.turf_name}
                       className="w-full h-44 md:h-40 object-cover rounded-xl mb-2"
                     />
@@ -257,13 +255,9 @@ export default function Turf() {
                         {formatTo12Hour(turf.opening_time)} - {formatTo12Hour(turf.closing_time)}
                       </p>
 
-                      {/* <span className="inline-block mt-3 px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">
-                        {turf.approval_status}
-                      </span> */}
-                    </div>
+                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 mt-1 pb-5 pl-5 pr-5 pt-0">
-
+                     <div className="grid grid-cols-3 gap-2 mt-1 pb-5 pl-5 pr-5 pt-0">
                       <button
                         onClick={() => handleEdit(turf)}
                         className="rounded-xl border py-2 hover:bg-slate-100"

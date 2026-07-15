@@ -142,7 +142,7 @@ export default function TurfModal({
             </button>
 
             <button 
-            className="px-5 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition"  >
+            className="px-5 py-2.5 rounded-lg bg-emerald-800 text-white hover:bg-emerald-700 transition"  >
               {isEdit ? "Update" : "Create"}
             </button>
           </div>

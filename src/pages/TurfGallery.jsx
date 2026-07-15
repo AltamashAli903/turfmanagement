@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import API from "../api/axios";
+import API, { IMAGE_URL } from "../api/axios";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import Swal from "sweetalert2";
 import {
     ArrowLeft,
     Images,
     Upload,
     Trash2,
 } from "lucide-react";
-
-const IMAGE_URL = "http://192.168.1.17:4500";
 
 export default function TurfGallery() {
 
@@ -81,23 +80,45 @@ export default function TurfGallery() {
     };
 
     const deleteImage = async (image) => {
+    const result = await Swal.fire({
+        title: "Delete Image?",
+        text: "This image will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Cancel",
+        reverseButtons: true,
+    });
 
-        if (!window.confirm("Delete Image?")) return;
+    if (!result.isConfirmed) return;
 
+    try {
         await API.delete("/turf/gallery/delete", {
-
             data: {
-
                 gallery_id: image.id,
                 image_path: image.image_path,
-
             },
+        });
 
+        await Swal.fire({
+            icon: "success",
+            title: "Deleted!",
+            text: "Image deleted successfully.",
+            timer: 1500,
+            showConfirmButton: false,
         });
 
         loadGallery();
-
-    };
+    } catch (error) {
+        Swal.fire({
+            icon: "error",
+            title: "Oops!",
+            text: "Failed to delete image.",
+        });
+    }
+};
 
     return (
         <div className="flex h-screen overflow-hidden bg-white">
@@ -135,119 +156,139 @@ export default function TurfGallery() {
 
                                     <p className="text-slate-500">
 
-                                        Manage Gallery Images
+                                        Manage Gallery ( Turf Images )
 
                                     </p>
-
-                                </div>
-
-                                <div className="rounded-xl bg-white px-5 py-3 shadow">
-
-                                    <div className="flex items-center gap-2">
-
-                                        <Images size={20} />
-
-                                        {gallery.length}/12 Images
-
-                                    </div>
 
                                 </div>
 
                             </div>
 
                             {/* Upload */}
-                            <div className="mt-8 grid gap-6 lg:grid-cols-2">
+                            <div className="mt-10 grid gap-1 lg:grid-cols-2">
 
-                            
 
-                            <div className="mt-10 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-8 pt-2 w-[90%]">
 
-                                <div className="flex flex-col items-center justify-center text-center">
+                                <div className="mt-0 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-8 pt-2 w-[95%]">
 
-                                    <Upload
-                                        size={55}
-                                        className="text-emerald-600"
-                                    />
+                                    <div className="flex flex-col items-center justify-center text-center">
 
-                                    <h2 className="mt-4 text-xl font-semibold text-slate-800">
-                                        Upload Turf Images
-                                    </h2>
+                                        <Upload
+                                            size={55}
+                                            className="text-emerald-600"
+                                        />
 
-                                    <p className="mt-2 text-sm text-slate-500">
-                                        Click the button below to select up to 12 gallery images.
-                                    </p>
+                                        <h2 className="mt-4 text-xl font-semibold text-slate-800">
+                                            Upload Turf Images
+                                        </h2>
 
-                                    <label
-                                        htmlFor="gallery-upload"
-                                        className="mt-6 cursor-pointer rounded-xl bg-emerald-700 px-6 py-3 font-medium text-white transition hover:bg-emerald-800"
-                                    >
-                                        Select Images
-                                    </label>
+                                        <p className="mt-2 text-sm text-slate-500">
+                                            Click the button below to select up to 12 gallery images.
+                                        </p>
 
-                                    <input
-                                        id="gallery-upload"
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => setImages([...e.target.files])}
-                                    />
+                                        <label
+                                            htmlFor="gallery-upload"
+                                            className="mt-6 cursor-pointer rounded-xl bg-emerald-700 px-6 py-3 font-medium text-white transition hover:bg-emerald-800"
+                                        >
+                                            Upload Images
+                                        </label>
+                                        <input
+                                            id="gallery-upload"
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={async (e) => {
+                                                const files = [...e.target.files];
 
-                                    {images.length > 0 && (
-                                        <>
-                                            <p className="mt-4 text-sm font-medium text-emerald-700">
-                                                {images.length} image(s) selected
-                                            </p>
+                                                if (!files.length) return;
 
-                                            <button
-                                                onClick={uploadImages}
-                                                className="mt-5 rounded-xl bg-emerald-800 px-6 py-3 text-white hover:bg-emerald-700"
-                                            >
-                                                Upload Images
-                                            </button>
-                                        </>
-                                    )}
+                                                setImages(files);
+
+                                                const formData = new FormData();
+                                                formData.append("turf_id", id);
+                                                formData.append("turf_name", state.turfName);
+
+                                                files.forEach((file) => {
+                                                    formData.append("images", file);
+                                                });
+
+                                                await API.post("/turf/gallery/upload", formData, {
+                                                    headers: {
+                                                        "Content-Type": "multipart/form-data",
+                                                    },
+                                                });
+
+                                                setImages([]);
+                                                loadGallery();
+                                                e.target.value = ""; // Reset input
+                                            }}
+                                        />
+
+                                        <input
+                                            id="gallery-upload"
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => setImages([...e.target.files])}
+                                        />
+
+                                        {images.length > 0 && (
+                                            <>
+                                                <p className="mt-4 text-sm font-medium text-emerald-700">
+                                                    {images.length} image(s) selected
+                                                </p>
+
+                                                <button
+                                                    onClick={uploadImages}
+                                                    className="mt-5 rounded-xl bg-emerald-800 px-6 py-3 text-white hover:bg-emerald-700"
+                                                >
+                                                    Upload Images
+                                                </button>
+                                            </>
+                                        )}
+
+                                    </div>
+
 
                                 </div>
-                                
+                                <div className="rounded-2xl border h-60 w-[90%] bg-white p-4 shadow hidden lg:block">
 
+                                    <h2 className="text-xl font-semibold">
+                                        Gallery Information
+                                    </h2>
+
+                                    <div className="mt-4 space-y-5">
+
+                                        <div className="flex justify-between">
+                                            <span>Total Images</span>
+                                            <span>{gallery.length}/12</span>
+                                        </div>
+
+                                        <div className="flex justify-between">
+                                            <span>Remaining</span>
+                                            <span>{12 - gallery.length}</span>
+                                        </div>
+
+                                        <div className="flex justify-between">
+                                            <span>Supported</span>
+                                            <span>JPG, PNG</span>
+                                        </div>
+
+                                        <div className="flex justify-between">
+                                            <span>Maximum</span>
+                                            <span>12 Images</span>
+                                        </div>
+
+                                    </div>
+
+                                </div>
                             </div>
-                            <div className="rounded-2xl border bg-white p-6 shadow">
-
-      <h2 className="text-xl font-semibold">
-          Gallery Information
-      </h2>
-
-      <div className="mt-6 space-y-5">
-
-          <div className="flex justify-between">
-              <span>Total Images</span>
-              <span>{gallery.length}/12</span>
-          </div>
-
-          <div className="flex justify-between">
-              <span>Remaining</span>
-              <span>{12-gallery.length}</span>
-          </div>
-
-          <div className="flex justify-between">
-              <span>Supported</span>
-              <span>JPG, PNG</span>
-          </div>
-
-          <div className="flex justify-between">
-              <span>Maximum</span>
-              <span>12 Images</span>
-          </div>
-
-      </div>
-
-  </div>    
-  </div>
 
                             {/* Gallery */}
 
-                            <div className="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                            <div className="mt-8 mr-4 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
                                 {gallery.map((image) => (
 

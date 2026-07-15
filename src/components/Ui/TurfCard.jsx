@@ -4,9 +4,7 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-
-// const IMAGE_URL = "https://turf-backend-mtku.onrender.com/uploads/turfs/";
-const IMAGE_URL = "http://192.168.1.17:4500/uploads/turfs/";
+import {IMAGE_URL} from "../../api/axios";
 
 export default function TurfCard({ turf }) {
   return (
@@ -32,14 +30,14 @@ className="
       <div className="relative h-44 sm:h-48 lg:h-48 overflow-hidden">
 
         <img
-          src={`${IMAGE_URL}${turf.cover_image}`}
+          src={`${IMAGE_URL}/uploads/turfs/${turf.cover_image}`}
           alt={turf.turf_name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
         />
 
         {/* Heart */}
 
-        <button
+        {/* <button
           className="
             absolute
             right-3
@@ -58,7 +56,7 @@ className="
           "
         >
           <Heart size={18} />
-        </button>
+        </button> */}
 
         {/* Sport */}
 
