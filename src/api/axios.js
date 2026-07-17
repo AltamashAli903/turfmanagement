@@ -19,8 +19,8 @@
 import axios from "axios";
 
 // const SERVER_URL = "http://localhost:4500";
-const SERVER_URL = "http://192.168.1.16:4500";
-// const SERVER_URL = "https://turf-backend-mtku.onrender.com";
+// const SERVER_URL = "http://192.168.1.16:4500";
+const SERVER_URL = "https://turf-backend-mtku.onrender.com";
 
 export const IMAGE_URL = SERVER_URL;
 
