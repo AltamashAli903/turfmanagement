@@ -4,12 +4,15 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-import {IMAGE_URL} from "../../api/axios";
+import { IMAGE_URL } from "../../api/axios";
+import { formatTo12Hour } from "../../utils/TimeFormat"
 
-export default function TurfCard({ turf }) {
+export default function TurfCard({ turf,
+  onViewDetails,
+  onCheckSlot }) {
   return (
     <div
-className="
+      className="
   w-[90%]
   max-w-[320px]
   sm:w-full
@@ -25,7 +28,7 @@ className="
   hover:-translate-y-2
   hover:shadow-2xl
 "
->
+    >
       {/* Image */}
       <div className="relative h-44 sm:h-48 lg:h-48 overflow-hidden">
 
@@ -60,7 +63,7 @@ className="
 
         {/* Sport */}
 
-        
+
 
       </div>
 
@@ -71,11 +74,12 @@ className="
         <h3 className="line-clamp-2 text-lg font-bold text-slate-900">
           {turf.turf_name}
         </h3>
+          
 
         <div className="flex items-center gap-2 text-sm text-slate-500">
 
           <MapPin
-            size={16}
+            size={18}
             className="text-emerald-500 shrink-0"
           />
 
@@ -85,61 +89,48 @@ className="
 
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
 
-  {/* Stars + Rating */}
-  <div className="flex items-center">
-    {[...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        size={15}
-        fill="#facc15"
-        stroke="#facc15"
-      />
-    ))}
+          
 
-    <span className="ml-2 text-sm font-medium text-slate-500">
-      4.6
-    </span>
-  </div>
-
-  {/* Sport Type */}
-  <span className="rounded-full px-3 py-1 text-xs font-semibold text-black">
-    {turf.sport_type}
-  </span>
-
-</div>
-
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-
-          <div className="flex items-center gap-1 text-xs text-slate-500">
+          {/* Sport Type */}
+          <div className="mb-1 mt-1 flex items-center gap-2 text-sm text-slate-500">
 
             <Clock
-              size={15}
+              size={16}
               className="text-emerald-500"
             />
 
             <span>
-              {turf.opening_time.slice(0, 5)} - {turf.closing_time.slice(0, 5)}
+              {formatTo12Hour(turf.opening_time)} - {formatTo12Hour(turf.closing_time)}
             </span>
 
           </div>
 
-          <button
-            className="
-              rounded-full
-              bg-slate-900
-              px-4
-              py-2
-              text-xs
-              font-semibold
-              text-white
-              transition
-              hover:bg-emerald-500
-            "
-          >
-            Check Slot →
-          </button>
+        </div>
+
+        <div className="border-t border-slate-100 pt-4">
+
+
+
+         <div>
+
+<button
+   onClick={() => onCheckSlot(turf)}
+   className="
+      w-full
+      rounded-xl
+      bg-emerald-600
+      py-3
+      text-white
+      font-semibold
+      hover:bg-emerald-700
+   "
+>
+   Book Now →
+</button>
+
+</div>
 
         </div>
 

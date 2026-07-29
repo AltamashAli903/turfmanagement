@@ -18,9 +18,9 @@ export default function TurfGallery() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { state } = useLocation();
-
+    const [uploading, setUploading] = useState(false);
     const [gallery, setGallery] = useState([]);
-    const [images, setImages] = useState([]);
+
 
     useEffect(() => {
 
@@ -40,85 +40,48 @@ export default function TurfGallery() {
 
     };
 
-    const uploadImages = async () => {
 
-        if (images.length === 0) return;
-
-        if (gallery.length + images.length > 12) {
-
-            alert("Maximum 10 images allowed.");
-
-            return;
-
-        }
-
-        const formData = new FormData();
-
-        formData.append("turf_id", id);
-        formData.append("turf_name", state.turfName);
-
-        images.forEach((img) => {
-
-            formData.append("images", img);
-
-        });
-
-        await API.post(
-            "/turf/gallery/upload",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-
-        setImages([]);
-
-        loadGallery();
-
-    };
 
     const deleteImage = async (image) => {
-    const result = await Swal.fire({
-        title: "Delete Image?",
-        text: "This image will be permanently deleted.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dc2626",
-        cancelButtonColor: "#6b7280",
-        confirmButtonText: "Yes, Delete",
-        cancelButtonText: "Cancel",
-        reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-        await API.delete("/turf/gallery/delete", {
-            data: {
-                gallery_id: image.id,
-                image_path: image.image_path,
-            },
+        const result = await Swal.fire({
+            title: "Delete Image?",
+            text: "This image will be permanently deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Yes, Delete",
+            cancelButtonText: "Cancel",
+            reverseButtons: true,
         });
 
-        await Swal.fire({
-            icon: "success",
-            title: "Deleted!",
-            text: "Image deleted successfully.",
-            timer: 1500,
-            showConfirmButton: false,
-        });
+        if (!result.isConfirmed) return;
 
-        loadGallery();
-    } catch (error) {
-        Swal.fire({
-            icon: "error",
-            title: "Oops!",
-            text: "Failed to delete image.",
-        });
-    }
-};
+        try {
+            await API.delete("/turf/gallery/delete", {
+                data: {
+                    gallery_id: image.id,
+                    image_path: image.image_path,
+                },
+            });
+
+            await Swal.fire({
+                icon: "success",
+                title: "Deleted!",
+                text: "Image deleted successfully.",
+                timer: 1500,
+                showConfirmButton: false,
+            });
+
+            loadGallery();
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops!",
+                text: "Failed to delete image.",
+            });
+        }
+    };
 
     return (
         <div className="flex h-screen overflow-hidden bg-white">
@@ -187,11 +150,16 @@ export default function TurfGallery() {
                                         </p>
 
                                         <label
-                                            htmlFor="gallery-upload"
-                                            className="mt-6 cursor-pointer rounded-xl bg-emerald-700 px-6 py-3 font-medium text-white transition hover:bg-emerald-800"
+                                            htmlFor={uploading ? "" : "gallery-upload"}
+                                            className={`mt-6 rounded-xl px-6 py-3 font-medium text-white transition
+        ${uploading
+                                                    ? "cursor-not-allowed bg-slate-400"
+                                                    : "cursor-pointer bg-emerald-700 hover:bg-emerald-800"
+                                                }`}
                                         >
-                                            Upload Images
+                                            {uploading ? "Uploading..." : "Choose & Upload Images"}
                                         </label>
+
                                         <input
                                             id="gallery-upload"
                                             type="file"
@@ -203,9 +171,19 @@ export default function TurfGallery() {
 
                                                 if (!files.length) return;
 
-                                                setImages(files);
+                                                if (gallery.length + files.length > 12) {
+                                                    Swal.fire({
+                                                        icon: "warning",
+                                                        title: "Maximum 12 Images",
+                                                        text: "You can upload only 12 images.",
+                                                    });
+
+                                                    e.target.value = "";
+                                                    return;
+                                                }
 
                                                 const formData = new FormData();
+
                                                 formData.append("turf_id", id);
                                                 formData.append("turf_name", state.turfName);
 
@@ -213,41 +191,41 @@ export default function TurfGallery() {
                                                     formData.append("images", file);
                                                 });
 
-                                                await API.post("/turf/gallery/upload", formData, {
-                                                    headers: {
-                                                        "Content-Type": "multipart/form-data",
-                                                    },
-                                                });
+                                                try {
+                                                    setUploading(true);
 
-                                                setImages([]);
-                                                loadGallery();
-                                                e.target.value = ""; // Reset input
+                                                    await API.post("/turf/gallery/upload", formData, {
+                                                        headers: {
+                                                            "Content-Type": "multipart/form-data",
+                                                        },
+                                                    });
+
+                                                    await loadGallery();
+
+                                                    Swal.fire({
+                                                        icon: "success",
+                                                        title: "Uploaded!",
+                                                        text: `${files.length} image(s) uploaded successfully.`,
+                                                        timer: 1500,
+                                                        showConfirmButton: false,
+                                                    });
+
+                                                } catch (err) {
+                                                    Swal.fire({
+                                                        icon: "error",
+                                                        title: "Upload Failed",
+                                                        text: "Unable to upload images.",
+                                                    });
+                                                } finally {
+                                                    setUploading(false);
+                                                    e.target.value = "";
+                                                }
                                             }}
                                         />
 
-                                        <input
-                                            id="gallery-upload"
-                                            type="file"
-                                            multiple
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={(e) => setImages([...e.target.files])}
-                                        />
 
-                                        {images.length > 0 && (
-                                            <>
-                                                <p className="mt-4 text-sm font-medium text-emerald-700">
-                                                    {images.length} image(s) selected
-                                                </p>
 
-                                                <button
-                                                    onClick={uploadImages}
-                                                    className="mt-5 rounded-xl bg-emerald-800 px-6 py-3 text-white hover:bg-emerald-700"
-                                                >
-                                                    Upload Images
-                                                </button>
-                                            </>
-                                        )}
+
 
                                     </div>
 

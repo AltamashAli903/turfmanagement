@@ -157,6 +157,7 @@ export default function Turf() {
     await API.put("/turf/delete", {
       turf_id: id,
     });
+    fetchTurfs();
   };
 
   const openGallery = (turf) => {
@@ -200,7 +201,7 @@ export default function Turf() {
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">
-                  Turf Management ({turfs.length})
+                  Turf Management 
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">
             Manage all your turfs
@@ -213,14 +214,15 @@ export default function Turf() {
                   setIsEdit(false);
                   setOpenModal(true);
                 }}
-                className="bg-emerald-800 hover:bg-emerald-700 mt-5 text-white px-6 mr-4 py-2 rounded-xl transition-all duration-300"
-              >
-                + Add Turf
+                // className="bg-emerald-800 hover:bg-emerald-700 mt-5 text-white px-6 mr-10 py-2 rounded-xl transition-all duration-300"
+              className="bg-emerald-900 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl mr-11 mt-4 transition-all duration-300"
+             >
+                + Add 
               </button>
             </div>
 
             {/* GRID */}
-            {turfs.length === 0 ? (
+            {/* {turfs.length === 0 ? (
               <div className="text-center text-slate-400 py-20">
                 No Turf Found
               </div>
@@ -282,7 +284,7 @@ export default function Turf() {
                         }
                         className="flex items-center justify-center gap-2 rounded-xl border border-emerald-900 py-2 text-emerald-900 hover:bg-emerald-50 transition"
                       >
-                        {/* <Images size={16} /> */}
+                        <Images size={16} />
                         Gallery
                       </button>
 
@@ -292,7 +294,95 @@ export default function Turf() {
                 ))}
 
               </div>
-            )}
+            )} */}
+
+            {/* <div className="mt-6 space-y-5 mr-10"> */}
+           <div className="mt-6 mr-10 space-y-5 rounded-2xl border-2 border-emerald-800 bg-white shadow-sm">
+    {turfs.map((turf) => (
+        <div
+            key={turf.id}
+            className="flex items-center gap-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition"
+        >
+
+            {/* Image */}
+
+            <img
+                src={`${IMAGE_URL}/uploads/turfs/${turf.cover_image}`}
+                className="h-60 w-72 rounded-xl object-cover flex-shrink-0"
+            />
+
+            {/* Details */}
+
+            <div className="flex-1">
+
+                <div className="flex justify-between">
+
+                    <div>
+
+                        <h2 className="text-2xl font-bold">
+                            {turf.turf_name}
+                        </h2>
+
+                        <p className="mt-3 text-slate-600">
+                            📍 {turf.location}
+                        </p>
+
+                        <p className="mt-2 text-slate-600">
+                            🏏 {turf.sport_type}
+                        </p>
+
+                        <p className="mt-2 text-slate-600">
+                            🕒 {formatTo12Hour(turf.opening_time)}
+                            {" - "}
+                            {formatTo12Hour(turf.closing_time)}
+                        </p>
+
+                        <p className="mt-4 text-slate-500 line-clamp-2">
+                            {turf.description}
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {/* Buttons */}
+
+                <div className="mt-6 flex gap-3">
+
+                    <button
+                        onClick={() => handleEdit(turf)}
+                        className="rounded-xl bg-emerald-800 px-5 py-2 text-white hover:bg-emerald-700"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        onClick={() =>
+                            navigate(`/turf/gallery/${turf.id}`, {
+                                state: {
+                                    turfName: turf.turf_name,
+                                },
+                            })
+                        }
+                        className="rounded-xl border border-emerald-800 px-5 py-2 text-emerald-800 hover:bg-emerald-50"
+                    >
+                        Gallery
+                    </button>
+
+                    <button
+                        onClick={() => handleDelete(turf.id)}
+                        className="rounded-xl bg-red-500 px-5 py-2 text-white hover:bg-red-600"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    ))}
+</div>
 
             {/* MODAL */}
             <TurfModal

@@ -17,7 +17,7 @@ export default function SlotModal({
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
 
         <h2 className="text-xl font-semibold mb-4">
-          {isEdit ? "Update Slot" : "Create Slot"}
+          {isEdit ? "Update Slot" : "Add Slot"}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">

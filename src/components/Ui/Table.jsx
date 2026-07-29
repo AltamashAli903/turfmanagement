@@ -5,7 +5,7 @@ export default function Table({
   emptyMessage = "No data found",
 }) {
   return (
-    <div className="bg-white border border-slate-200 mt-5 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="bg-emerald-900 text-white hover:bg-emerald-900">
@@ -13,7 +13,7 @@ export default function Table({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-6 py-4 ${col.align || "text-left"}`}
+                  className={`px-6 py-4 ${col.align || "text-center"}`}
                 >
                   {col.title}
                 </th>

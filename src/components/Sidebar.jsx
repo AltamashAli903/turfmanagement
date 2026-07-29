@@ -167,6 +167,11 @@ export default function Sidebar({
       icon: <LayoutDashboard size={20} />,
     },
     {
+      name: "Turf",
+      path: "/turf",
+      icon: <MapPin size={20} />,
+    },
+    {
       name: "Slots",
       path: "/slots",
       icon: <CalendarDays size={20} />,
@@ -176,11 +181,7 @@ export default function Sidebar({
       path: "/bookings",
       icon: <ClipboardList size={20} />,
     },
-    {
-      name: "Turf",
-      path: "/turf",
-      icon: <MapPin size={20} />,
-    },
+    
   ];
 
   return (

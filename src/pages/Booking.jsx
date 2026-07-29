@@ -1,195 +1,408 @@
 import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import API from "../api/axios";
+import BookingModal from "../components/Model/BookingModal";
+import Loader from "../components/UI/Loader";
+import Toast from "../components/UI/Toast";
+import Table from "../components/UI/Table";
+import { formatTo12Hour } from "../utils/TimeFormat";
 
-export default function Bookings() { 
-  const [collapsed, setCollapsed] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [bookings, setBookings] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("ALL");
-  const [loading, setLoading] = useState(true);
+export default function Bookings() {
+    const [collapsed, setCollapsed] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [bookings, setBookings] = useState([]);
+    const [filtered, setFiltered] = useState([]);
+    const [search, setSearch] = useState("");
+    const [status, setStatus] = useState("ALL");
+    const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState(null);
+    const [openModal, setOpenModal] = useState(false);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+    const columns = [
+        { key: "customer_name", title: "Customer" },
+        { key: "customer_phone", title: "Phone" },
+        { key: "turf_name", title: "Turf" },
+        { key: "slot", title: "Slot" },
+        { key: "booking_date", title: "Date" },
+        { key: "payment_status", title: "Payment" },
+        { key: "booking_status", title: "Status" },
+        { key: "actions", title: "Actions", align: "text-center" },
+    ];
+    useEffect(() => {
+        fetchBookings();
+    }, []);
 
-  useEffect(() => {
-    filterData();
-  }, [search, status, bookings]);
+    const [form, setForm] = useState({
+        turf_id: "",
+        slot_id: "",
+        booking_date: "",
+        customer_name: "",
+        customer_phone: "",
+        payment_status: "paid",
+        booking_status: "pending",
+    });
 
-  const fetchBookings = async () => {
-    try {
-    //   const res = await getBookings();
-    //   if (res.success) {
-    //     setBookings(res.data);
-    //   }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const updateBookingStatus = async (bookingId, bookingStatus) => {
+        try {
+            await API.put("/booking/status", {
+                booking_id: bookingId,
+                booking_status: bookingStatus,
+            });
 
-  const filterData = () => {
-    let data = bookings;
+            fetchBookings();
 
-    if (search) {
-      data = data.filter(
-        (b) =>
-          b.user_name.toLowerCase().includes(search.toLowerCase()) ||
-          b.user_phone.includes(search)
-      );
-    }
+            setToast({
+                type: "success",
+                message: "Booking status updated.",
+            });
 
-    if (status !== "ALL") {
-      data = data.filter((b) => b.status === status);
-    }
+        } catch (err) {
+            setToast({
+                type: "error",
+                message: "Unable to update booking status.",
+            });
+        }
+    };
 
-    setFiltered(data);
-  };
+    const updatePaymentStatus = async (bookingId, paymentStatus) => {
+        try {
+            await API.put("/booking/payment-status", {
+                booking_id: bookingId,
+                payment_status: paymentStatus,
+            });
+
+            fetchBookings();
+
+            setToast({
+                type: "success",
+                message: "Payment status updated.",
+            });
+
+        } catch (err) {
+            setToast({
+                type: "error",
+                message: "Unable to update payment status.",
+            });
+        }
+    };
+    const handleEnter = (e) => {
+        if (e.key !== "Enter") return;
+
+        e.preventDefault();
+
+        const form = e.target.form;
+        const index = [...form.elements].indexOf(e.target);
+
+        form.elements[index + 1]?.focus();
+    };
+
+    useEffect(() => {
+        filterData();
+    }, [search, status, bookings]);
+
+
+
+    const fetchBookings = async () => {
+        try {
+            setLoading(true);
+
+            const owner = JSON.parse(localStorage.getItem("owner"));
+
+            const response = await API.post("/booking/owner-list", {
+                owner_id: owner.id,
+            });
+
+            if (response.data.success) {
+                setBookings(response.data.data);
+            } else {
+                setToast({
+                    message: "Unable to load bookings.",
+                    type: "error",
+                });
+            }
+        } catch (error) {
+            setToast({
+                message:
+                    error.response?.data?.message ||
+                    "Something went wrong.",
+                type: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filterData = () => {
+        let data = bookings;
+
+        if (search) {
+            data = data.filter(
+                (b) =>
+                    b.customer_name
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                    b.customer_phone.includes(search)
+            );
+        }
+
+        if (status !== "ALL") {
+            data = data.filter(
+                (b) => b.booking_status === status.toLowerCase()
+            );
+        }
+
+        setFiltered(data);
+    };
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
-             <Sidebar
+        <div className="flex h-screen overflow-hidden bg-gray-100">
+            <Sidebar
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
             />
 
-            <div className="flex-1 flex flex-col">
-                <Header 
-                setSidebarOpen={setSidebarOpen}/>
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <Header
+                    setSidebarOpen={setSidebarOpen} />
 
-                <main className="flex-1 bg-white pt-4 pl-8">
+                <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 lg:p-8">
                     <div className="space-y-6">
 
                         {/* HEADER */}
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900">
-                                Bookings
-                            </h1>
-                            <p className="text-slate-500 ">
-                                Manage and track all turf bookings
-                            </p>
-                        </div>
+                        {/* <div className="mr-0 mb-0 flex items-center">
 
-                        {/* FILTER CARD */}
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center">
+                            
+                            {/* Center *
+                            <div className="flex flex-1 justify-Left mt-2">
+                                <div className="flex items-center gap-3">
 
-                            <input
-                                type="text"
-                                placeholder="Search by name or phone"
-                                className="border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none px-4 py-2 rounded-xl w-72 text-sm"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
+                                    <input
+                                        type="text"
+                                        placeholder="Search Customer........"
+                                        className="w-72 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
 
-                            <select
-                                className="border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none px-4 py-2 rounded-xl text-sm"
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                            >
-                                <option value="ALL">All Status</option>
-                                <option value="CONFIRMED">Confirmed</option>
-                                <option value="CANCELLED">Cancelled</option>
-                            </select>
+                                    <select
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                        className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
+                                    >
+                                        <option value="ALL">All</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
 
-                            {/* Optional quick stats */}
-                            <div className="ml-auto text-sm text-slate-500">
-                                Total: <span className="font-semibold text-slate-800">{filtered.length}</span>
+                                
+                                </div>
                             </div>
 
+                            {/* Right 
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setOpenModal(true)}
+                                    // className="rounded-xl bg-emerald-900 px-5 py-2 text-white font-semibold hover:bg-emerald-800"
+                                 className="bg-emerald-900 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl mr-11 mt-4 transition-all duration-300"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+
+                        </div> */}
+
+                        <div className="mr-0 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+                            {/* Search + Filter */}
+                            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+
+                                <input
+                                    type="text"
+                                    placeholder="Search Customer..."
+                                    className="w-full sm:w-72 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="w-full sm:w-48 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
+                                >
+                                    <option value="ALL">All</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+
+                            </div>
+
+                            {/* Button */}
+                            <button
+                                onClick={() => setOpenModal(true)}
+                                className="w-full sm:w-auto rounded-xl bg-emerald-900 px-5 py-3 text-white font-medium hover:bg-emerald-700 transition"
+                            >
+                                + Add Booking
+                            </button>
+
                         </div>
 
+
+
+
                         {/* TABLE WRAPPER */}
-                        <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+                        {/* <div className="mr-10 mb-5"> */}
+                        <div className="mb-5 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
                             {loading ? (
                                 <div className="flex-1 flex items-center justify-center text-slate-500">
-                                    Loading bookings...
+                                    <Loader text="Loading Bookings..." />
                                 </div>
                             ) : filtered.length === 0 ? (
                                 <div className="flex-1 flex items-center justify-center text-slate-400">
                                     No bookings found
                                 </div>
                             ) : (
-                                <div className="overflow-auto">
+                      <div className="overflow-x-auto">
 
-                                    <table className="w-full text-sm">
+                                    <Table
+                                        columns={columns}
+                                        data={filtered}
+                                        emptyMessage="No bookings found."
+                                        renderCell={(key, row) => {
+                                            switch (key) {
+                                                case "booking_date":
 
-                                        {/* HEADER */}
-                                        <thead className="bg-slate-50 text-slate-600 sticky top-0">
-                                            <tr className="text-left">
-                                                <th className="px-5 py-3 font-medium">User</th>
-                                                <th className="px-5 py-3 font-medium">Phone</th>
-                                                <th className="px-5 py-3 font-medium">Turf</th>
-                                                <th className="px-5 py-3 font-medium">Slot</th>
-                                                <th className="px-5 py-3 font-medium">Date</th>
-                                                <th className="px-5 py-3 font-medium">Status</th>
-                                            </tr>
-                                        </thead>
+                                                    return new Date(row.booking_date)
+                                                        .toLocaleDateString("en-IN", {
+                                                            day: "2-digit",
+                                                            month: "short",
+                                                            year: "numeric"
+                                                        });
 
-                                        {/* BODY */}
-                                        <tbody>
+                                                case "slot":
+                                                    return `${formatTo12Hour(row.slot_start)} - ${formatTo12Hour(row.slot_end)}`;
 
-                                            {filtered.map((b) => (
-                                                <tr
-                                                    key={b.id}
-                                                    className="border-t border-slate-100 hover:bg-slate-50 transition"
-                                                >
-
-                                                    <td className="px-5 py-4 font-medium text-slate-900">
-                                                        {b.user_name}
-                                                    </td>
-
-                                                    <td className="px-5 py-4 text-slate-600">
-                                                        {b.user_phone}
-                                                    </td>
-
-                                                    <td className="px-5 py-4 text-slate-700">
-                                                        {b.turf_name}
-                                                    </td>
-
-                                                    <td className="px-5 py-4 text-slate-600">
-                                                        {b.slot_start} - {b.slot_end}
-                                                    </td>
-
-                                                    <td className="px-5 py-4 text-slate-600">
-                                                        {b.booking_date}
-                                                    </td>
-
-                                                    <td className="px-5 py-4">
-
-                                                        <span
-                                                            className={`px-3 py-1 rounded-full text-xs font-semibold
-                                                                    ${b.status === "CONFIRMED"
-                                                                    ? "bg-green-50 text-green-700"
-                                                                    : "bg-red-50 text-red-600"
+                                                case "booking_status":
+                                                    return (
+                                                        <button
+                                                            onClick={() =>
+                                                                updateBookingStatus(
+                                                                    row.id,
+                                                                    row.booking_status === "pending"
+                                                                        ? "confirmed"
+                                                                        : row.booking_status === "confirmed"
+                                                                            ? "cancelled"
+                                                                            : "pending"
+                                                                )
+                                                            }
+                                                            className={`px-3 py-1 text-xs rounded-full font-medium transition
+                                                                    ${row.booking_status === "confirmed"
+                                                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                                    : row.booking_status === "pending"
+                                                                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                                        : "bg-red-100 text-red-700 hover:bg-red-200"
                                                                 }`}
                                                         >
-                                                            {b.status}
-                                                        </span>
+                                                            {row.booking_status === "confirmed"
+                                                                ? "Confirmed"
+                                                                : row.booking_status === "pending"
+                                                                    ? "Pending"
+                                                                    : "Cancelled"}
+                                                        </button>
+                                                    );
+                                                case "payment_status":
+                                                    return (
+                                                        <button
+                                                            onClick={() =>
+                                                                updatePaymentStatus(
+                                                                    row.id,
+                                                                    row.payment_status === "pending"
+                                                                        ? "paid"
+                                                                        : "pending"
+                                                                )
+                                                            }
+                                                            className={`px-3 py-1 text-xs rounded-full font-medium transition
+                                                                     ${row.payment_status === "paid"
+                                                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                                }`}
+                                                        >
+                                                            {row.payment_status === "paid"
+                                                                ? "Paid"
+                                                                : "Pending"}
+                                                        </button>
+                                                    ); return (
+                                                        <button
+                                                            onClick={() =>
+                                                                updateBooking(
+                                                                    row.id,
+                                                                    row.booking_status,
+                                                                    row.payment_status === "pending"
+                                                                        ? "paid"
+                                                                        : row.payment_status === "paid"
+                                                                            ? "failed"
+                                                                            : "pending"
+                                                                )
+                                                            }
+                                                            className={`px-3 py-1 text-xs rounded-full font-medium transition
+                                             ${row.payment_status === "paid"
+                                                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                                    : row.payment_status === "pending"
+                                                                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                                        : "bg-red-100 text-red-700 hover:bg-red-200"
+                                                                }`}
+                                                        >
+                                                            {row.payment_status === "paid"
+                                                                ? "Paid"
+                                                                : row.payment_status === "pending"
+                                                                    ? "Pending"
+                                                                    : "Failed"}
+                                                        </button>
+                                                    );
+                                                case "actions":
+                                                    return (
+                                                        <button
+                                                            onClick={() => editBooking(row)}
+                                                            className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                    );
 
-                                                    </td>
-
-                                                </tr>
-                                            ))}
-
-                                        </tbody>
-
-                                    </table>
+                                                default:
+                                                    return row[key];
+                                            }
+                                        }}
+                                    />
 
                                 </div>
                             )}
 
                         </div>
-
+                        {toast && (
+                            <Toast
+                                message={toast.message}
+                                type={toast.type}
+                                onClose={() => setToast(null)}
+                            />
+                        )}
+                        <BookingModal
+                            open={openModal}
+                            onClose={() => setOpenModal(false)}
+                            fetchBookings={fetchBookings}
+                            setToast={setToast}
+                            handleEnter={handleEnter}
+                        />
                     </div>
                 </main>
+
             </div>
         </div>
+
     );
 }

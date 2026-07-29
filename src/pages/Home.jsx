@@ -1,11 +1,12 @@
 import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
 import Footer from "../components/Footer";
+import SlotAvailabilityModal from "../components/Model/SlotAvailabilityModal";
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
-
+import AboutSection from "../pages/About"
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 
@@ -24,6 +25,9 @@ export default function Home() {
   const [toast, setToast] = useState(null);
   const prevRef = useRef(null);
   const nextRef = useRef(null);
+  const [selectedTurf, setSelectedTurf] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState("details");
 
   useEffect(() => {
     fetchTurfs();
@@ -109,7 +113,19 @@ export default function Home() {
                       justifyContent: "center",
                     }}
                   >
-                    <TurfCard turf={turf} />
+                    <TurfCard
+                      turf={turf}
+                      onViewDetails={() => {
+                        setSelectedTurf(turf);
+                        setModalMode("details");
+                        setShowModal(true);
+                      }}
+                      onCheckSlot={() => {
+                        setSelectedTurf(turf);
+                        setModalMode("booking");
+                        setShowModal(true);
+                      }}
+                    />
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -131,6 +147,20 @@ export default function Home() {
             onClose={() => setToast(null)}
           />
         )}
+
+        {
+          showModal && (
+            <SlotAvailabilityModal
+              turf={selectedTurf}
+              mode={modalMode}
+              onClose={() => setShowModal(false)}
+            />
+          )
+        }
+      </section>
+
+       <section id="about">
+        <AboutSection />
       </section>
 
       <Footer />
