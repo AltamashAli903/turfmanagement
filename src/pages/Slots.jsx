@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
-import Swal from "sweetalert2";
+import CustomizedAlert from "../components/Ui/CustomizedAlert";
 import Toast from "../components/ui/Toast";
 import Table from "../components/ui/Table";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import SlotModal from "../components/Model/SlotModel";
+import { formatTo12Hour } from "../utils/TimeFormat";
 
 export default function Slots() {
     const [form, setForm] = useState({
@@ -13,6 +14,13 @@ export default function Slots() {
         slot_start: "",
         slot_end: "",
         price: ""
+    });
+    const [alert, setAlert] = useState({
+        open: false,
+        type: "confirm",
+        title: "",
+        message: "",
+        onConfirm: null,
     });
 
     const [errors, setErrors] = useState({});
@@ -68,9 +76,6 @@ export default function Slots() {
             type,
         });
     };
-    
-
-    const formatTime = (time) => time?.slice(0, 5);
 
     const fetchSlots = async () => {
         const owner = JSON.parse(localStorage.getItem("owner"));
@@ -218,21 +223,36 @@ export default function Slots() {
         setLoading(false);
     };
 
-    const handleDelete = async (id) => {
-        const confirm = await Swal.fire({
+    const handleDelete = (id) => {
+        setAlert({
+            open: true,
+            type: "delete",
             title: "Delete Slot?",
-            icon: "warning",
-            showCancelButton: true
-        });
+            message: "Are you sure you want to delete this slot? This action cannot be undone.",
+            onConfirm: async () => {
+                try {
+                    await API.delete("/slot/delete", {
+                        data: {
+                            slot_id: id,
+                        },
+                    });
 
-        if (!confirm.isConfirmed) return;
+                    fetchSlots();
 
-        await API.delete("/slot/delete", {
-            data: {
-                slot_id: id,
+                    showToast("Slot deleted successfully.", "success");
+                } catch (err) {
+                    showToast(
+                        err?.response?.data?.message || "Failed to delete slot.",
+                        "error"
+                    );
+                } finally {
+                    setAlert((prev) => ({
+                        ...prev,
+                        open: false,
+                    }));
+                }
             },
         });
-        fetchSlots();
     };
 
     const toggleAvailability = async (slot) => {
@@ -276,7 +296,7 @@ export default function Slots() {
                                 }}
                                 className="bg-emerald-900 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl mr-11 mt-4 transition-all duration-300"
                             >
-                                + Add 
+                                + Add
                             </button>
                         </div>
 
@@ -288,10 +308,10 @@ export default function Slots() {
                                 renderCell={(key, slot) => {
                                     switch (key) {
                                         case "slot_start":
-                                            return formatTime(slot.slot_start);
+                                            return formatTo12Hour(slot.slot_start);
 
                                         case "slot_end":
-                                            return formatTime(slot.slot_end);
+                                            return formatTo12Hour(slot.slot_end);
 
                                         case "price":
                                             return `₹${slot.price}`;
@@ -346,6 +366,19 @@ export default function Slots() {
                             handleChange={handleChange}
                             handleSubmit={handleSubmit}
                             setOpenModal={setOpenModal}
+                        />
+                        <CustomizedAlert
+                            open={alert.open}
+                            type={alert.type}
+                            title={alert.title}
+                            message={alert.message}
+                            onConfirm={alert.onConfirm}
+                            onClose={() =>
+                                setAlert((prev) => ({
+                                    ...prev,
+                                    open: false,
+                                }))
+                            }
                         />
 
                         {toast.show && (

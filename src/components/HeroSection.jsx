@@ -3,7 +3,8 @@ import heroBg from "../assets/Bg- Turf.png";
 
 export default function HeroSection() {
   return (
-    <section
+    <section 
+      id="home"
       className="relative flex min-h-screen items-center overflow-hidden bg-cover bg-center"
       style={{
         backgroundImage: `url(${heroBg})`,

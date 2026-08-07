@@ -16,6 +16,9 @@ export default function TurfCard({ turf,
   w-[90%]
   max-w-[320px]
   sm:w-full
+  h-[420px]
+  sm:h-[320px]
+  lg:h-[320px]
   group
   overflow-hidden
   rounded-3xl
@@ -30,7 +33,7 @@ export default function TurfCard({ turf,
 "
     >
       {/* Image */}
-      <div className="relative h-44 sm:h-48 lg:h-48 overflow-hidden">
+      <div className="relative h-44 sm:h-36 lg:h-36 overflow-hidden">
 
         <img
           src={`${IMAGE_URL}/uploads/turfs/${turf.cover_image}`}
@@ -38,43 +41,16 @@ export default function TurfCard({ turf,
           className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
         />
 
-        {/* Heart */}
-
-        {/* <button
-          className="
-            absolute
-            right-3
-            top-3
-            flex
-            h-9
-            w-9
-            items-center
-            justify-center
-            rounded-full
-            bg-white
-            shadow-lg
-            transition
-            hover:bg-red-500
-            hover:text-white
-          "
-        >
-          <Heart size={18} />
-        </button> */}
-
-        {/* Sport */}
-
-
-
       </div>
 
       {/* Body */}
 
-      <div className="space-y-3 p-4">
+      <div className="space-y-2 p-4">
 
         <h3 className="line-clamp-2 text-lg font-bold text-slate-900">
           {turf.turf_name}
         </h3>
-          
+
 
         <div className="flex items-center gap-2 text-sm text-slate-500">
 
@@ -91,7 +67,7 @@ export default function TurfCard({ turf,
 
         <div className="flex items-center justify-between gap-2">
 
-          
+
 
           {/* Sport Type */}
           <div className="mb-1 mt-1 flex items-center gap-2 text-sm text-slate-500">
@@ -109,28 +85,29 @@ export default function TurfCard({ turf,
 
         </div>
 
-        <div className="border-t border-slate-100 pt-4">
+        <div className="border-t border-slate-100 pt-6 mt-4 lg:pt-2 lg:mt-0">
 
 
 
-         <div>
+          <div>
 
-<button
-   onClick={() => onCheckSlot(turf)}
-   className="
+            <button
+              onClick={() => onCheckSlot(turf)}
+              className="
       w-full
       rounded-xl
       bg-emerald-600
       py-3
+      lg:py-2
       text-white
       font-semibold
       hover:bg-emerald-700
    "
->
-   Book Now →
-</button>
+            >
+              Book Now →
+            </button>
 
-</div>
+          </div>
 
         </div>
 

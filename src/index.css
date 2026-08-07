@@ -29,85 +29,133 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}/* ==========================================================
-   Compact React Calendar
-========================================================== */
-
-.react-calendar {
-  width: 280px;          /* Small calendar */
-  max-width: 100%;
-  border: none;
-  font-family: inherit;
-  background: #fff;
-  font-size: 12px;
+  
 }
 
-/* Header */
+/* =====================================
+   Booking Calendar
+===================================== */
 
-.react-calendar__navigation {
-  height: 30px;
-  margin-bottom: 4px;
+.calendar-wrapper{
+    background:#fff;
+    border-radius:24px;
+    padding:5px;
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.06);
 }
 
-.react-calendar__navigation button {
-  min-width: 28px;
-  height: 28px;
-  padding: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #10b981;
-  font-size: 13px;
-  font-weight: 600;
+.booking-calendar{
+    width:100%;
+    border:none;
+    background:transparent;
+    font-family:inherit;
 }
 
-.react-calendar__navigation button:hover {
-  background: #ecfdf5;
+/* HEADER */
+
+.booking-calendar .react-calendar__navigation{
+    display:flex;
+    align-items:center;
+    margin-bottom:20px;
 }
 
-/* Month Name */
-
-.react-calendar__navigation__label {
-  font-size: 13px;
-  font-weight: 700;
+.booking-calendar .react-calendar__navigation button{
+    min-width:42px;
+    height:42px;
+    border:none;
+    border-radius:14px;
+    background:#F2FBF6;
+    color:#16a34a;
+    font-size:22px;
+    font-weight:700;
+    transition:.25s;
 }
 
-/* Week Days */
-
-.react-calendar__month-view__weekdays {
-  text-transform: uppercase;
-  font-size: 10px;
-  font-weight: 600;
-  margin-bottom: 4px;
+.booking-calendar .react-calendar__navigation button:hover{
+    background:#16a34a;
+    color:white;
 }
 
-.react-calendar__month-view__weekdays__weekday {
-  padding: 2px 0;
+.booking-calendar .react-calendar__navigation__label{
+    flex-grow:1!important;
+    font-size:18px;
+    font-weight:500;
+    color:#16a34a;
 }
 
-.react-calendar abbr {
-  text-decoration: none;
+/* WEEK DAYS */
+
+.booking-calendar .react-calendar__month-view__weekdays{
+
+    text-transform:uppercase;
+
+    margin-bottom:14px;
 }
 
-/* Date Tiles */
+.booking-calendar .react-calendar__month-view__weekdays__weekday{
 
-.react-calendar__tile {
-  height: 28px;
-  width: 28px;
-  padding: 2px;
-  border-radius: 6px;
-  font-size: 11px;
+    font-size:8px;
+
+    color:#64748b;
+
+    font-weight:700;
+
+    padding:8px 0;
 }
 
-.react-calendar__tile:hover {
-  background: #ecfdf5;
+.booking-calendar abbr{
+
+    text-decoration:none;
 }
 
-.react-calendar__tile--active {
-  background: #10b981 !important;
-  color: white !important;
+/* DAYS */
+
+.booking-calendar .react-calendar__tile{
+
+    height:34px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:transparent;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
 }
 
-.react-calendar__tile--now {
-  background: #d1fae5;
-  color: #065f46;
+.booking-calendar .react-calendar__tile:hover{
+
+    background:#ECFDF5;
+
+    color:#16a34a;
+}
+
+.booking-calendar .react-calendar__tile--active{
+
+    background:linear-gradient(135deg,#10b981,#16a34a)!important;
+
+    color:white!important;
+
+    border-radius:50%;
+}
+
+.booking-calendar .react-calendar__tile--now{
+
+    background:#DCFCE7;
+
+    color:#065f46;
+}
+
+.booking-calendar .react-calendar__tile:disabled{
+    
+    color:#CBD5E1;
+}
+
+.booking-calendar .react-calendar__navigation button:disabled{
+
+    background:transparent;
 }

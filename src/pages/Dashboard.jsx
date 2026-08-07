@@ -1,14 +1,29 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from "recharts";
 import { Building2, CalendarDays, CheckCircle, ClipboardList, IndianRupee } from "lucide-react";
+import {
+  User,
+  Phone,
+  Clock3,
+  MapPin,
+  Check,
+  X
+} from "lucide-react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import API from "../api/axios";
+import { formatTo12Hour } from "../utils/TimeFormat";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Dashboard() {
-const [collapsed, setCollapsed] = useState(false);
-const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({});
   const [chartData, setChartData] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
 
@@ -32,38 +47,48 @@ const [sidebarOpen, setSidebarOpen] = useState(false);
 
   }, []);
 
+  const loadBookings = async () => {
+    try {
+      setBookingLoading(true);
+      const owner = JSON.parse(localStorage.getItem("owner"));
+
+      const res = await API.post("/booking/dashboard-list", {
+        owner_id: owner.id,
+        booking_status: "pending",
+      });
+
+      if (res.data.success) {
+        setBookings(res.data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
   return (
-   <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-screen overflow-hidden bg-white">
       <Sidebar
-    collapsed={collapsed}
-    setCollapsed={setCollapsed}
-    sidebarOpen={sidebarOpen}
-    setSidebarOpen={setSidebarOpen}
-/>
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header
-    setSidebarOpen={setSidebarOpen}
-/>
+          setSidebarOpen={setSidebarOpen}
+        />
 
         <main className="flex-1 overflow-y-auto bg-white pl-8 pt-4">
           <div className="space-y-6">
 
-            {/* HEADER */}
-            <div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  Dashboard
-                </h1>
-                <p className="text-slate-500 text-sm mt-1">
-                  Overall View of your turf's
-                </p>
-              </div>
-
-            </div>
-
             {/* STATS */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-5 sm:grid-cols-5 xl:grid-cols-5 gap-5">
 
               <StatCard
                 title="Turfs"
@@ -77,11 +102,11 @@ const [sidebarOpen, setSidebarOpen] = useState(false);
                 icon={<CalendarDays size={22} />}
               />
 
-              {/* <StatCard
+              <StatCard
                 title="Active"
                 value={stats.active}
                 icon={<CheckCircle size={22} />}
-              /> */}
+              />
 
               <StatCard
                 title="Booked"
@@ -95,6 +120,86 @@ const [sidebarOpen, setSidebarOpen] = useState(false);
                 icon={<IndianRupee size={22} />}
               />
 
+            </div>
+
+            {/* PENDING BOOKINGS */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Pending Bookings
+                  </h2>
+                  {/* <p className="text-sm text-slate-500">
+                    Booking requests awaiting your approval
+                  </p> */}
+                </div>
+
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700">
+                  {bookings.length} Pending
+                </span>
+              </div>
+
+              {bookingLoading ? (
+                <div className="py-12 text-center text-slate-500">
+                  Loading bookings...
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 py-12 text-center">
+                  <ClipboardList
+                    size={40}
+                    className="mx-auto text-slate-300"
+                  />
+
+                  <p className="mt-3 text-slate-500">
+                    No pending bookings.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 pt-2">
+                  {bookings.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[1.3fr_1fr_1fr_0.8fr_1.2fr_auto] items-center gap-4 border-b border-slate-100 py-1 text-sm"
+                    >
+                      {/* Customer */}
+                      <div>
+                        <p className="font-semibold text-slate-800">{item.customer_name}</p>
+                        <p className="text-xs text-slate-500">{item.customer_phone}</p>
+                      </div>
+
+                      {/* Date */}
+                      <div className="text-slate-600 text-sm">
+                        {item.booking_date}
+                      </div>
+
+                      {/* Slot */}
+                      <div className="text-slate-600 text-sm">
+                        {formatTo12Hour(item.slot_start)} - {formatTo12Hour(item.slot_end)}
+                      </div>
+
+                      {/* Amount */}
+                      <div className="font-semibold text-emerald-600">
+                        ₹{item.price}
+                      </div>
+
+                      {/* Turf */}
+                      <div className="truncate text-slate-600">
+                        {item.turf_name}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => navigate(`/bookings`)}
+                          className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* CHARTS */}
@@ -144,6 +249,8 @@ const [sidebarOpen, setSidebarOpen] = useState(false);
               </ul>
             </div>
 
+
+
           </div>
 
         </main>
@@ -156,7 +263,7 @@ function StatCard({ title, value, icon }) {
 
   return (
 
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
 
       <div className="flex justify-between items-center">
 

@@ -1,10 +1,20 @@
 import { useEffect, useState } from "react";
+import CustomizedAlert from "../Ui/CustomizedAlert";
 import Calendar from "react-calendar";
+import { formatDateForApi } from "../../utils/DateFormat";
 import "react-calendar/dist/Calendar.css";
-import { X, ChevronLeft, ChevronRight, MapPin, Clock, CheckCircle2, Clock3, BadgeIndianRupee } from "lucide-react";
-import { formatTo12Hour } from "../../utils/TimeFormat";
-import API, { IMAGE_URL } from "../../api/axios";
+import {
+    X, ChevronLeft, ChevronRight, User, Phone, MapPin, Clock, CheckCircle2, Clock3, BadgeIndianRupee,
+    Contact, CalendarDays, Wallet, ShieldCheck, CarFront, Toilet, GlassWater, Coffee, LockKeyhole,
+} from "lucide-react";
 
+import { formatTo12Hour } from "../../utils/TimeFormat";
+import BookingCalendar from "../Ui/BookingCalendar";
+import API, { IMAGE_URL } from "../../api/axios";
+import ContactImage from "../../assets/turf.png";
+import Logo from "../../assets/turf.png";
+import { useRef } from "react";
+import { FaGoogle, FaFacebookF, FaTwitter, FaEye, FaEyeSlash, } from "react-icons/fa";
 export default function SlotAvailabilityModal({
     turf,
     onClose,
@@ -12,36 +22,67 @@ export default function SlotAvailabilityModal({
     /* ==========================================================
         STATES
     ========================================================== */
-
+    const [galleryPage, setGalleryPage] = useState(0);
     const [step, setStep] = useState("details");
     const [slots, setSlots] = useState([]);
     const [slotLoading, setSlotLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [selectedImage, setSelectedImage] = useState(0);
-    const [customer, setCustomer] = useState({
-        name: "",
-        phone: "",
-    });
+    const [customer, setCustomer] = useState({ name: "", phone: "", });
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [gallery, setGallery] = useState([]);
+    const nameRef = useRef(null);
+    const phoneRef = useRef(null);
+
+    const [alert, setAlert] = useState({
+        open: false,
+        type: "confirm",
+        title: "",
+        message: "",
+        onConfirm: null,
+    });
+    const confirmBooking = () => {
+        setAlert({
+            open: true,
+            type: "confirm",
+            title: "Confirm Booking?",
+            message:
+                "Please verify all booking details before submitting. Once submitted, your booking request will be sent to the turf owner.",
+            onConfirm: () => {
+                setAlert((prev) => ({ ...prev, open: false }));
+                createBooking();
+            },
+        });
+    };
+
+    const IMAGES_PER_PAGE = 4;
+    const totalPages = Math.ceil(gallery.length / IMAGES_PER_PAGE);
+    const visibleImages = gallery.slice(
+        galleryPage * IMAGES_PER_PAGE,
+        galleryPage * IMAGES_PER_PAGE + IMAGES_PER_PAGE
+    );
+
+    const [showAllSlots, setShowAllSlots] = useState(false);
+    const visibleSlots =
+        slots.length > 8
+            ? showAllSlots
+                ? slots.slice(8)
+                : slots.slice(0, 8)
+            : slots;
 
     const fetchAvailableSlots = async (date) => {
         try {
-
             setSlotLoading(true);
-
             const res = await API.post("/booking/available-slots", {
                 turf_id: turf.id,
                 booking_date: date,
             });
-
             if (res.data.success) {
                 setSlots(res.data.data || []);
             } else {
                 setSlots([]);
             }
-
         } catch (err) {
             console.error(err);
             setSlots([]);
@@ -50,20 +91,18 @@ export default function SlotAvailabilityModal({
         }
     };
 
-
     const createBooking = async () => {
         try {
             const res = await API.post("/booking/create", {
                 turf_id: turf.id,
                 slot_id: selectedSlot.id,
-                booking_date: selectedDate
-                    .toISOString()
-                    .split("T")[0],
+                booking_date: formatDateForApi(selectedDate),
                 customer_name: customer.name,
                 customer_phone: customer.phone,
-                payment_status: "pending"
+                payment_status: "pending",
             });
-            if (res.data.booking_id) {
+
+            if (res.data.success) {
                 setBookingSuccess(true);
                 setStep("success");
             }
@@ -78,13 +117,21 @@ export default function SlotAvailabilityModal({
         }
     }, [turf]);
 
+    const facilityIcons = {
+        Parking: CarFront,
+        Washroom: Toilet,
+        "Drinking Water": GlassWater,
+        Cafeteria: Coffee,
+        Locker: LockKeyhole,
+    };
+
     /* ==========================================================
         GALLERY
     ========================================================== */
 
     const loadGallery = async () => {
         try {
-            const res = await API.post("/turf/gallery/list", {
+            const res = await API.post("/gallery/list", {
                 turf_id: turf.id,
             });
 
@@ -99,15 +146,14 @@ export default function SlotAvailabilityModal({
     ========================================================== */
 
     const nextStep = () => {
-        if (step === "details") setStep("date");
-        else if (step === "date") setStep("customer");
-        else if (step === "customer") setStep("summary");
-        else if (step === "summary") setStep("success");
-        else if (step === "customer") setStep("summary");
-        else if (step === "summary") {
+        if (step === "details") {
+            setStep("date");
+        } else if (step === "date") {
+            setStep("customer");
+        } else if (step === "customer") {
+            setStep("summary");
+        } else if (step === "summary") {
             createBooking();
-            setBookingSuccess(true);
-            setStep("success");
         }
     };
 
@@ -232,27 +278,56 @@ export default function SlotAvailabilityModal({
                                             ? `${IMAGE_URL}${gallery[selectedImage].image_path}`
                                             : `${IMAGE_URL}${turf.cover_image}`
                                     }
-                                    className="w-full h-[250px] rounded-2xl object-cover"
+                                    className="w-full h-[250px] rounded-2xl object-cover border-black border-2"
                                     alt=""
                                 />
 
-                                <div className="grid grid-cols-4 gap-3 mt-4">
+                                <div className="grid grid-cols-6 gap-3 mt-6">
+                                    <button
+                                        disabled={galleryPage === 0}
+                                        onClick={() => setGalleryPage((p) => p - 1)}
+                                        className={`h-10 w-10 mt-5  rounded-full border flex items-center justify-center
+                                                ${galleryPage === 0
+                                                ? "opacity-40 cursor-not-allowed"
+                                                : "hover:bg-emerald-50"
+                                            }`}
+                                    >
+                                        <ChevronLeft size={15} />
+                                    </button>
 
-                                    {gallery.map((img, i) => (
+                                    {visibleImages.map((img, index) => {
 
-                                        <img
-                                            key={img.id}
-                                            src={`${IMAGE_URL}${img.image_path}`}
-                                            alt=""
-                                            onClick={() => setSelectedImage(i)}
-                                            className={`h-20 w-full rounded-xl object-cover cursor-pointer border-4 transition
-                                                    ${selectedImage === i
-                                                    ? "border-emerald-500"
-                                                    : "border-transparent"
-                                                }`}
-                                        />
+                                        const actualIndex =
+                                            galleryPage * IMAGES_PER_PAGE + index;
 
-                                    ))}
+                                        return (
+
+                                            <img
+                                                key={img.id}
+                                                src={`${IMAGE_URL}${img.image_path}`}
+                                                onClick={() => setSelectedImage(actualIndex)}
+                                                className={`h-20 w-full rounded-xl object-cover cursor-pointer border-1 transition
+
+                                                        ${selectedImage === actualIndex
+                                                        ? "border-emerald-500"
+                                                        : "border-slate-900"
+                                                    }`}
+                                            />
+
+                                        );
+
+                                    })}
+                                    <button
+                                        disabled={galleryPage === totalPages - 1}
+                                        onClick={() => setGalleryPage((p) => p + 1)}
+                                        className={`h-10 w-10 rounded-full border flex items-center justify-center mt-5 ml-6
+                                                ${galleryPage === totalPages - 1
+                                                ? "opacity-40 cursor-not-allowed"
+                                                : "hover:bg-emerald-50"
+                                            }`}
+                                    >
+                                        <ChevronRight size={15} />
+                                    </button>
 
                                 </div>
 
@@ -260,7 +335,7 @@ export default function SlotAvailabilityModal({
 
                             {/* Details */}
 
-                            <div className="flex flex-col">
+                            <div className="flex flex-col gap-3">
 
                                 <h2 className="text-3xl font-bold">
 
@@ -268,22 +343,18 @@ export default function SlotAvailabilityModal({
 
                                 </h2>
 
-                                <div className="flex items-center gap-2 mt-5 text-slate-600">
+                                <div className="flex items-center gap-2 mt-2 text-slate-600">
 
                                     <MapPin
                                         size={20}
-                                        className="text-emerald-600"
+                                        className="text-black"
                                     />
 
                                     {turf.location}
 
-                                </div>
-
-                                <div className="flex items-center gap-2 mt-4 text-slate-600">
-
                                     <Clock
                                         size={20}
-                                        className="text-emerald-600"
+                                        className="text-black ml-6"
                                     />
 
                                     {formatTo12Hour(
@@ -297,20 +368,71 @@ export default function SlotAvailabilityModal({
 
                                 </div>
 
-                                <div className="mt-8">
+                                <div className="">
+                                    <h3 className="font-semibold text-lg mb-1">
+                                        Facilities
+                                    </h3>
+
+                                    {(() => {
+                                        const facilities = Array.isArray(turf.facilities)
+                                            ? turf.facilities
+                                            : typeof turf.facilities === "string"
+                                                ? JSON.parse(turf.facilities)
+                                                : [];
+
+                                        if (!facilities.length) {
+                                            return (
+                                                <p className="text-slate-400">
+                                                    No facilities available
+                                                </p>
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="grid grid-cols-3 gap-y-2 gap-x-2">
+                                                {facilities.map((facility, index) => {
+                                                    const Icon = facilityIcons[facility];
+
+                                                    return (
+                                                        <div
+                                                            key={index}
+                                                            className="flex items-center gap-1"
+                                                        >
+                                                            {Icon && (
+                                                                <div className="flex h-6 w-6 items-center justify-center">
+                                                                    <Icon
+                                                                        size={18}
+                                                                        className=""
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            <span className="text-slate-700 text-xs font-medium">
+                                                                {facility}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+
+                                <div className="mt-2">
 
                                     <h3 className="font-semibold text-lg">
                                         About Turf
                                     </h3>
 
-                                    <p className="text-slate-600 leading-7 mt-3">
+                                    <p className="text-slate-600 leading-7">
                                         {turf.description ||
                                             "Premium sports turf with high-quality playing surface, flood lights, parking, washrooms and refreshment facilities."}
                                     </p>
 
                                 </div>
 
-                                <div className="mt-auto flex justify-end pt-10">
+
+                                <div className="mt-4 flex justify-end pt-2">
 
                                     <button
                                         onClick={nextStep}
@@ -334,30 +456,25 @@ export default function SlotAvailabilityModal({
                         ========================================================== */}
 
                     {step === "date" && (
-                        <div className="grid lg:grid-cols-[320px_1fr] gap-4 items-start">
+                        <div className="grid lg:grid-cols-[360px_1fr] gap-4 items-start">
 
                             {/* LEFT SIDE */}
 
-                            <div>
+                            <div className="max-w-90">
 
-                                <div className="rounded-2xl border p-3 shadow-sm max-w-[300px]">
+                                <div className="rounded-[30px] overflow-hidden bg-linear-to-b from-emerald-50 via-white to-white border border-emerald-100 shadow-xl">
+                                    {/* Calendar */}
 
-                                    <h3 className="text-xl font-semibold mb-5">
-                                        Select Booking Date
-                                    </h3>
+                                    <div className="">
 
-                                    <Calendar
+                                        <BookingCalendar
+                                            selectedDate={selectedDate}
+                                            setSelectedDate={setSelectedDate}
+                                            setSelectedSlot={setSelectedSlot}
+                                            fetchAvailableSlots={fetchAvailableSlots}
+                                        />
 
-                                        value={selectedDate}
-                                        onChange={(date) => {
-                                            console.log("Calendar clicked", date);
-                                            setSelectedDate(date);
-                                            setSelectedSlot(null);
-                                            fetchAvailableSlots(
-                                                date.toISOString().split("T")[0]
-                                            );
-                                        }} minDate={new Date()}
-                                    />
+                                    </div>
 
                                 </div>
 
@@ -380,9 +497,22 @@ export default function SlotAvailabilityModal({
                                     <>
                                         <div className="flex flex-col h-full">
 
-                                            <h2 className="text-2xl font-bold mb-6">
-                                                Available Slots
-                                            </h2>
+                                            <div className="flex items-center justify-between mb-6">
+
+                                                <h2 className="text-2xl font-bold">
+                                                    Available Slots
+                                                </h2>
+
+                                                {slots.length > 8 && (
+                                                    <button
+                                                        onClick={() => setShowAllSlots(!showAllSlots)}
+                                                        className="rounded-full px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:scale-105 hover:text-emerald-800"
+                                                    >
+                                                        {showAllSlots ? "Show Less...." : "Show More...."}
+                                                    </button>
+                                                )}
+
+                                            </div>
 
                                             {slotLoading ? (
 
@@ -406,82 +536,113 @@ export default function SlotAvailabilityModal({
 
                                             ) : (
 
-                                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                                                    {slots.map((slot) => {
+                                                <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-3 mt-0">
+                                                    {visibleSlots.map((slot) => {
                                                         const selected = selectedSlot?.id === slot.id;
-
+                                                        console.log("selectedSlot:", selectedSlot);
                                                         return (
                                                             <button
                                                                 key={slot.id}
                                                                 onClick={() => setSelectedSlot(slot)}
                                                                 className={`
-                                                                            relative
-                                                                            rounded-2xl
-                                                                            border
-                                                                            px-3
-                                                                            py-2
-                                                                            bg-white
-                                                                            transition-all
-                                                                            duration-300
-                                                                            hover:-translate-y-1
-                                                                            hover:shadow-lg
-
-                                                                            ${selected
-                                                                        ? "border-emerald-500 bg-emerald-50 shadow-md"
-                                                                        : "border-slate-200 hover:border-emerald-400"
+                                                                        group
+                                                                        w-full
+                                                                        h-13
+                                                                        rounded-full
+                                                                        border
+                                                                        px-2
+                                                                        flex
+                                                                        items-center
+                                                                        justify-between
+                                                                        transition-all
+                                                                        duration-300
+                                                                        ${selected
+                                                                        ? "bg-emerald-50 text-black border-emerald-600 shadow-lg shadow-emerald-200"
+                                                                        : "bg-white border-slate-200 hover:border-emerald-500 hover:shadow-md"
                                                                     }
-  `}
+    `}
                                                             >
-                                                                {/* Selected Badge */}
-                                                                {selected && (
-                                                                    <div className="absolute -top-2 -right-2">
-                                                                        <div className="h-6 w-6 rounded-full bg-emerald-600 flex items-center justify-center shadow">
-                                                                            <CheckCircle2 size={14} className="text-white" />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
+                                                                {/* Left */}
+                                                                <div className="flex items-center gap-1">
 
-                                                                {/* Time */}
-                                                                <div className="flex items-center gap-2">
-                                                                    <Clock3
-                                                                        size={16}
-                                                                        className="text-emerald-600"
-                                                                    />
-
-                                                                    <span className="font-semibold text-[10px]">
-                                                                        {formatTo12Hour(slot.slot_start)}
-                                                                        {" - "}
-                                                                        {formatTo12Hour(slot.slot_end)}
-                                                                    </span>
-                                                                </div>
-
-                                                                {/* Divider */}
-                                                                <div className="border-t border-dashed border-slate-200 my-3"></div>
-
-                                                                {/* Price */}
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center gap-2 text-[10px] text-emerald-700 font-bold">
-                                                                        <BadgeIndianRupee size={14} />
-                                                                        ₹{slot.price}
+                                                                    <div
+                                                                        className={`
+                                                                                    h-6
+                                                                                    w-6
+                                                                                    rounded-full
+                                                                                    flex
+                                                                                    items-center
+                                                                                    justify-center
+                                                                                    ${selected
+                                                                                ? "bg-white/20"
+                                                                                : "bg-emerald-50"
+                                                                            }
+            `}
+                                                                    >
+                                                                        {selected ? (
+                                                                            <CheckCircle2
+                                                                                size={16}
+                                                                                className="text-emerald-800"
+                                                                            />
+                                                                        ) : (
+                                                                            <Clock3
+                                                                                size={14}
+                                                                                className="text-emerald-600"
+                                                                            />
+                                                                        )}
                                                                     </div>
 
                                                                     <span
                                                                         className={`
-                                                                                    text-[8px]
-                                                                                    px-2
-                                                                                    py-1
-                                                                                    rounded-full
-                                                                                    ${selected
-                                                                                ? "bg-emerald-600 text-white"
-                                                                                : "bg-emerald-100 text-emerald-700"
-                                                                            }`}
+                                                                                text-xs
+                                                                                font-semibold
+                                                                                whitespace-nowrap
+                                                                                ${selected
+                                                                                ? "text-black"
+                                                                                : "text-slate-800"
+                                                                            }
+            `}
                                                                     >
-                                                                        {selected ? "Selected" : "Available"}
+                                                                        {formatTo12Hour(slot.slot_start)} - {formatTo12Hour(slot.slot_end)}
                                                                     </span>
+
+                                                                </div>
+
+                                                                {/* Right */}
+                                                                <div className="flex items-center ">
+
+                                                                    <span
+                                                                        className={`
+                                                                                pl-2
+                                                                                rounded-full
+                                                                                text-xs
+                                                                                font-bold
+                                                                                ${selected
+                                                                                ? " text-emerald-600"
+                                                                                : " text-black"
+                                                                            }
+                                                                       `}
+                                                                    >
+                                                                        ₹{slot.price}
+                                                                    </span>
+
+                                                                    {selected ? (
+                                                                        <CheckCircle2
+                                                                            size={1}
+                                                                            className="text-emerald-800"
+                                                                        />
+                                                                    ) : (
+                                                                        <ChevronRight
+                                                                            size={16}
+                                                                            className="text-slate-400 group-hover:text-emerald-600 transition"
+                                                                        />
+                                                                    )}
+
                                                                 </div>
                                                             </button>
                                                         );
                                                     })}
+
                                                 </div>
                                             )}
 
@@ -499,7 +660,7 @@ export default function SlotAvailabilityModal({
 
                                 <button
                                     onClick={prevStep}
-                                    className="px-6 py-1 border rounded-xl"
+                                    className="px-6 py-1 rounded-2xl border hover:bg-slate-100 transition"
                                 >
                                     Back
                                 </button>
@@ -507,11 +668,11 @@ export default function SlotAvailabilityModal({
                                 <button
                                     disabled={!selectedSlot}
                                     onClick={nextStep}
-                                    className={`px-6 py-1.5 rounded-xl text-white
+                                    className={`px-10 py-1 rounded-2xl font-semibold transition-all
                                             ${selectedSlot
-                                            ? "bg-emerald-600"
-                                            : "bg-gray-300 cursor-not-allowed"
-                                        }`}
+                                            ? "bg-gradient-to-r from-emerald-600 to-emerald-400 hover:shadow-xl hover:scale-105"
+                                            : "bg-slate-300 cursor-not-allowed"
+                                        } text-white`}
                                 >
                                     Continue
                                 </button>
@@ -526,87 +687,127 @@ export default function SlotAvailabilityModal({
                         ========================================================== */}
 
                     {step === "customer" && (
-                        <div className="max-w-2xl mx-auto">
+                        <div className="h-[68vh] rounded-[30px] overflow-hidden shadow-2xl bg-white relative grid lg:grid-cols-[55%_45%]">
+                            {/* ================= LEFT PANEL ================= */}
 
-                            <h2 className="text-2xl font-bold mb-2">
-                                Customer Details
-                            </h2>
+                            <div className="relative overflow-hidden z-20">
 
-                            <p className="text-slate-500 mb-8">
-                                Please enter your booking information.
-                            </p>
+                                <img
+                                    src={ContactImage}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    alt=""
+                                />
 
-                            <div className="space-y-6">
-
-                                <div>
-                                    <label className="block text-sm font-semibold mb-2">
-                                        Full Name
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        value={customer.name}
-                                        onChange={(e) =>
-                                            setCustomer({
-                                                ...customer,
-                                                name: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter your name"
-                                        className="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold mb-2">
-                                        Phone Number
-                                    </label>
-
-                                    <input
-                                        type="tel"
-                                        maxLength={10}
-                                        value={customer.phone}
-                                        onChange={(e) =>
-                                            setCustomer({
-                                                ...customer,
-                                                phone: e.target.value.replace(/\D/g, ""),
-                                            })
-                                        }
-                                        placeholder="Enter phone number"
-                                        className="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none"
-                                    />
-                                </div>
+                                <div className="absolute inset-0" />
 
                             </div>
 
-                            <div className="mt-5 flex justify-between">
+                            {/* ================= RIGHT PANEL ================= */}
 
-                                <button
-                                    onClick={prevStep}
-                                    className="px-1 pr-4 py-1.5 rounded-xl border hover:bg-slate-100 flex items-center gap-2"
-                                >
-                                    <ChevronLeft size={18} />
-                                    Back
-                                </button>
+                            <div className="bg-white flex flex-col justify-center pr-14 py-0 relative z-10">
 
-                                <button
-                                    disabled={
-                                        customer.name.trim() === "" ||
-                                        customer.phone.length !== 10
-                                    }
-                                    onClick={nextStep}
-                                    className={`px-1 pl-3 py-1.5 rounded-xl flex items-center gap-2 text-white ${customer.name.trim() !== "" &&
-                                        customer.phone.length === 10
-                                        ? "bg-emerald-600 hover:bg-emerald-700"
-                                        : "bg-slate-300 cursor-not-allowed"
-                                        }`}
-                                >
-                                    Continue
-                                    <ChevronRight size={18} />
-                                </button>
+                                <h2 className="text-2xl text-center font-bold mb-2 ">
+                                    Customer Details
+                                </h2>
 
+                                <p className="text-slate-500 text-center mb-4">
+                                    Please enter your contact details
+                                </p>
+
+                                <div className="space-y-3">
+
+                                    <div>
+                                        <label className="block text-xs font-semibold mb-2">
+                                            Full Name
+                                        </label>
+
+                                        <input
+                                            ref={nameRef}
+                                            type="text"
+                                            value={customer.name}
+                                            onChange={(e) =>
+                                                setCustomer({
+                                                    ...customer,
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault();
+                                                    phoneRef.current?.focus();
+                                                }
+                                            }}
+                                            placeholder="Enter your name"
+                                            className="w-full rounded-xl border border-slate-300 px-2 py-2 outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold mb-2">
+                                            Phone Number
+                                        </label>
+
+                                        <input
+                                            ref={phoneRef}
+                                            type="tel"
+                                            maxLength={10}
+                                            value={customer.phone}
+                                            onChange={(e) =>
+                                                setCustomer({
+                                                    ...customer,
+                                                    phone: e.target.value.replace(/\D/g, ""),
+                                                })
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (
+                                                    e.key === "Enter" &&
+                                                    customer.name.trim() !== "" &&
+                                                    customer.phone.length === 10
+                                                ) {
+                                                    e.preventDefault();
+                                                    nextStep();
+                                                }
+                                            }}
+                                            placeholder="Enter phone number"
+                                            className="w-full rounded-xl border border-slate-300 px-2 py-2 outline-none"
+                                        />
+                                    </div>
+                                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1">
+                                        <p className="text-xs text-amber-800">
+                                            📌 Note : Please verify your name and number carefully  your booking will be confirmed using these details
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                <div className="mt-5 flex justify-between">
+
+                                    <button
+                                        onClick={prevStep}
+                                        className="px-1 pr-4 py-1 mb-3 rounded-xl border hover:bg-slate-100 flex items-center gap-2"
+                                    >
+                                        <ChevronLeft size={18} />
+                                        Back
+                                    </button>
+
+                                    <button
+                                        disabled={
+                                            customer.name.trim() === "" ||
+                                            customer.phone.length !== 10
+                                        }
+                                        onClick={nextStep}
+                                        className={`px-1 pl-3 py-1.5 rounded-xl flex items-center gap-2 text-white mb-3 ${customer.name.trim() !== "" &&
+                                            customer.phone.length === 10
+                                            ? "bg-gradient-to-r from-emerald-600 to-emerald-400"
+                                            : "bg-slate-300 cursor-not-allowed"
+                                            }`}
+                                    >
+                                        Continue
+                                        <ChevronRight size={18} />
+                                    </button>
+
+                                </div>
                             </div>
-
                         </div>
                     )}
 
@@ -615,106 +816,198 @@ export default function SlotAvailabilityModal({
                         ========================================================== */}
 
                     {step === "summary" && (
-                        <div className="max-w-3xl mx-auto">
+                        <div className="max-w-4xl ">
 
-                            <h2 className="text-2xl font-bold mb-2">
-                                Booking Summary
-                            </h2>
+                            <div className="overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-xl">
 
-                            <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                                <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-green-500"></div>
 
-                                <div className="bg-emerald-600 text-white p-3">
+                                <div className="p-3">
 
-                                    <h3 className="text-lg font-semibold">
-                                        {turf.turf_name}
-                                    </h3>
+                                    {/* HEADER */}
+
+                                    <div className="flex items-center justify-between">
+
+                                        <div className="flex items-center gap-4">
+
+                                            <div className="h-16 w-16 rounded-2xl bg-emerald-50 flex items-center justify-center border border-emerald-100">
+
+                                                <img
+                                                    src={turf.logo || Logo}
+                                                    alt=""
+                                                    className="h-10 w-10 object-contain"
+                                                />
+
+                                            </div>
+
+                                            <div>
+
+                                                <h3 className="text-2xl font-bold text-slate-900">
+                                                    {turf.turf_name}
+                                                </h3>
+
+                                                <div className="flex items-center gap-2 mt-1 text-slate-500">
+
+                                                    <MapPin size={15} className="text-emerald-600" />
+
+                                                    <span className="text-sm">
+                                                        {turf.location}
+                                                    </span>
+
+                                                </div>
+
+                                            </div>
+
+
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="my-4 border-t border-dashed"></div>
+
+                                    {/* INFO */}
+
+                                    <div className="grid grid-cols-4 gap-3">
+
+                                        <div className="rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+
+                                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <CalendarDays size={18} className="text-emerald-600" />
+                                            </div>
+
+                                            <div>
+
+                                                <p className="text-[11px] uppercase text-slate-400">
+                                                    Date
+                                                </p>
+
+                                                <h4 className="font-semibold text-xs">
+                                                    {selectedDate.toDateString()}
+                                                </h4>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div className="rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+
+                                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <Clock3 size={18} className="text-emerald-600" />
+                                            </div>
+
+                                            <div>
+
+                                                <p className="text-[11px] uppercase text-slate-400">
+                                                    Slot
+                                                </p>
+
+                                                <h4 className="font-semibold text-xs">
+                                                    {formatTo12Hour(selectedSlot.slot_start)} - {formatTo12Hour(selectedSlot.slot_end)}
+                                                </h4>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div className="rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+
+                                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <User size={18} className="text-emerald-600" />
+                                            </div>
+
+                                            <div>
+
+                                                <p className="text-[11px] uppercase text-slate-400">
+                                                    Customer
+                                                </p>
+
+                                                <h4 className="font-semibold text-sm">
+                                                    {customer.name}
+                                                </h4>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div className="rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
+
+                                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <Phone size={18} className="text-emerald-600" />
+                                            </div>
+
+                                            <div>
+
+                                                <p className="text-[11px] uppercase text-slate-400">
+                                                    Mobile
+                                                </p>
+
+                                                <h4 className="font-semibold text-sm">
+                                                    {customer.phone}
+                                                </h4>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="mt-8 flex items-center justify-between border-t border-dashed border-slate-300 pt-6">
+
+                                        {/* Left */}
+
+                                        <div>
+
+                                            <p className="text-xs uppercase tracking-widest text-slate-400">
+                                                Amount Payable
+                                            </p>
+
+                                            <h2 className="mt-1 text-3xl font-black text-emerald-600">
+                                                ₹{selectedSlot.price}
+                                            </h2>
+
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Secure booking • No hidden charges
+                                            </p>
+
+                                        </div>
+
+                                        {/* Buttons */}
+
+                                        <div className="flex items-center gap-4">
+
+                                            <button
+                                                onClick={prevStep}
+                                                className="group flex h-12 items-center gap-2 rounded-xl border border-slate-300 bg-white px-2 pr-4 font-semibold text-slate-700 transition-all duration-300 hover:-translate-y-1 hover:border-slate-400 hover:bg-slate-50 hover:shadow-lg"
+                                            >
+                                                <ChevronLeft
+                                                    size={18}
+                                                    className="transition-transform group-hover:-translate-x-1"
+                                                />
+
+                                                Back
+
+                                            </button>
+
+                                            <button
+                                                onClick={confirmBooking}
+                                                className="group flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-500 px-2 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-2xl"
+                                            >
+
+                                                <ShieldCheck
+                                                    size={18}
+                                                    className="transition-transform duration-300 group-hover:rotate-12"
+                                                />
+
+                                                Confirm Booking
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
 
                                 </div>
-
-                                <div className="pl-6 pt-2 space-y-3">
-
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">
-                                            Location
-                                        </span>
-
-                                        <span className="font-semibold pr-5">
-                                            {turf.location}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">
-                                            Date
-                                        </span>
-
-                                        <span className="font-semibold pr-5">
-                                            {selectedDate.toDateString()}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">
-                                            Slot
-                                        </span>
-
-                                        <span className="font-semibold pr-5">
-                                            {formatTo12Hour(selectedSlot.start)} -{" "}
-                                            {formatTo12Hour(selectedSlot.end)}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between ">
-                                        <span className="text-slate-500">
-                                            Customer
-                                        </span>
-
-                                        <span className="font-semibold pr-5">
-                                            {customer.name}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-500">
-                                            Phone
-                                        </span>
-
-                                        <span className="font-semibold pr-5">
-                                            {customer.phone}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between mb-2">
-                                        <span className="text-slate-500">
-                                            Booking Status
-                                        </span>
-
-                                        <span className="px-3 mr-4 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm font-semibold">
-                                            Pending
-                                        </span>
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div className="mt-5 flex justify-between">
-
-                                <button
-                                    onClick={prevStep}
-                                    className="px-1 pr-4 py-1.5 rounded-xl border hover:bg-slate-100 flex items-center gap-1"
-                                >
-                                    <ChevronLeft size={18} />
-                                    Back
-                                </button>
-
-                                <button
-                                    onClick={nextStep}
-                                    className="px-5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
-                                >
-                                    Confirm Booking
-                                    {/* <CheckCircle2 size={18} /> */}
-                                </button>
 
                             </div>
 
@@ -726,68 +1019,92 @@ export default function SlotAvailabilityModal({
                         ========================================================== */}
 
                     {step === "success" && (
-                        <div className="flex flex-col items-center justify-center py-0">
+                        <div className="flex justify-center ">
 
-                            <h2 className="flex mt-0 text-3xl font-bold">
-                                Booking Submitted
-                                <div className="h-8 w-8 rounded-full mt-1 ml-2 bg-emerald-100 flex items-center justify-center">
+                            <div className="">
 
-                                    <CheckCircle2
-                                        size={25}
-                                        className="text-emerald-600"
-                                    />
+                                {/* Top Accent */}
+                                <div className="" />
 
-                                </div>
-                            </h2>
+                                <div className="px-10 py-1">
 
-                            <p className="text-slate-500 mt-3 text-center max-w-lg">
-                                Your booking request has been submitted successfully.
-                                Our team will verify the slot and confirm your booking shortly.
-                            </p>
+                                    {/* Success Icon */}
+                                    <div className="flex justify-center">
 
-                            <div className="mt-6 rounded-xl text-xl bg-slate-50 border p-3 w-full max-w-lg">
+                                        <div className="relative">
 
-                                <div className="flex justify-between mb-3">
-                                    <span>Turf</span>
-                                    <span>{turf.turf_name}</span>
-                                </div>
+                                            <div className="absolute inset-0 animate-ping rounded-full bg-emerald-300 opacity-20"></div>
 
-                                <div className="flex justify-between mb-3">
-                                    <span>Date</span>
-                                    <span>{selectedDate.toDateString()}</span>
-                                </div>
+                                            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100">
 
-                                <div className="flex justify-between mb-3">
-                                    <span>Slot</span>
-                                    <strong>
-                                        {formatTo12Hour(selectedSlot.start)} -{" "}
-                                        {formatTo12Hour(selectedSlot.end)}
-                                    </strong>
-                                </div>
+                                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-green-500 shadow-xl">
 
-                                <div className="flex justify-between">
-                                    <span>Status</span>
+                                                    <CheckCircle2
+                                                        size={40}
+                                                        className="text-white"
+                                                    />
 
-                                    <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
-                                        Pending
-                                    </span>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    {/* Heading */}
+
+                                    <div className="mt-6 text-center">
+                                        <h2 className="text-3xl font-extrabold text-slate-900">
+                                            Booking Submitted!
+                                        </h2>
+
+                                        <p className="mx-auto mt-4 max-w-lg text-lg leading-7 text-slate-500">
+                                            Thank you for choosing us your booking request has been received successfully.
+                                            Owner Will Contact You For Confirmation.
+                                            You can complete the payment online or directly at the venue. <br />
+                                        </p>
+                                    </div>
+
+                                    {/* Button */}
+
+                                    <div className="mt-6 flex justify-center">
+
+                                        <button
+                                            onClick={onClose}
+                                            className="rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 px-10 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+                                        >
+                                            Done
+                                        </button>
+
+                                    </div>
+
                                 </div>
 
                             </div>
 
-                            <button
-                                onClick={onClose}
-                                className="mt-4 px-5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
-                            >
-                                Close
-                            </button>
-
                         </div>
                     )}
-                    
+
                 </div>
 
             </div>
+            <CustomizedAlert
+                open={alert.open}
+                type={alert.type}
+                title={alert.title}
+                message={alert.message}
+                showCancel
+                confirmText="Confirm"
+                cancelText="Cancel"
+                onConfirm={alert.onConfirm}
+                onCancel={() =>
+                    setAlert((prev) => ({
+                        ...prev,
+                        open: false,
+                    }))
+                }
+            />
 
         </div>
     );

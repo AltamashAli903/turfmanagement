@@ -156,7 +156,7 @@ export default function Bookings() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-100">
+        <div className="flex h-screen overflow-hidden bg-white">
             <Sidebar
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
@@ -168,52 +168,8 @@ export default function Bookings() {
                 <Header
                     setSidebarOpen={setSidebarOpen} />
 
-                <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 lg:p-8">
+                <main className="flex-1 overflow-y-auto bg-white p-4 md:p-6 lg:p-8">
                     <div className="space-y-6">
-
-                        {/* HEADER */}
-                        {/* <div className="mr-0 mb-0 flex items-center">
-
-                            
-                            {/* Center *
-                            <div className="flex flex-1 justify-Left mt-2">
-                                <div className="flex items-center gap-3">
-
-                                    <input
-                                        type="text"
-                                        placeholder="Search Customer........"
-                                        className="w-72 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
-
-                                    <select
-                                        value={status}
-                                        onChange={(e) => setStatus(e.target.value)}
-                                        className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100"
-                                    >
-                                        <option value="ALL">All</option>
-                                        <option value="confirmed">Confirmed</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-
-                                
-                                </div>
-                            </div>
-
-                            {/* Right 
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={() => setOpenModal(true)}
-                                    // className="rounded-xl bg-emerald-900 px-5 py-2 text-white font-semibold hover:bg-emerald-800"
-                                 className="bg-emerald-900 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl mr-11 mt-4 transition-all duration-300"
-                                >
-                                    + Add
-                                </button>
-                            </div>
-
-                        </div> */}
 
                         <div className="mr-0 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -263,7 +219,7 @@ export default function Bookings() {
                                     <Loader text="Loading Bookings..." />
                                 </div>
                             ) : filtered.length === 0 ? (
-                                <div className="flex-1 flex items-center justify-center text-slate-400">
+                                <div className="flex-1 flex items-center justify-center text-slate-400 py-10">
                                     No bookings found
                                 </div>
                             ) : (

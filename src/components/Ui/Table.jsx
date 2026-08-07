@@ -6,14 +6,14 @@ export default function Table({
 }) {
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      <div className="overflow-auto">
+      <div className="max-h-125 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-emerald-900 text-white hover:bg-emerald-900">
+          <thead className="sticky top-0 z-10 bg-emerald-900 text-white">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-6 py-4 ${col.align || "text-center"}`}
+                  className={`px-3 py-2 ${col.align || "text-left"}`}
                 >
                   {col.title}
                 </th>
@@ -21,7 +21,7 @@ export default function Table({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 overflow-y-auto">
             {data.length > 0 ? (
               data.map((row, index) => (
                 <tr
@@ -31,9 +31,8 @@ export default function Table({
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={`px-6 py-4 ${
-                        col.align || "text-left"
-                      }`}
+                      className={`px-3 py-2 ${col.align || "text-left"
+                        }`}
                     >
                       {renderCell
                         ? renderCell(col.key, row)

@@ -49,15 +49,20 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  const displayTurfs = [
+    ...turfs,
+    ...Array(Math.max(0, 5 - turfs.length)).fill(null),
+  ];
   return (
     <>
       <Navbar />
 
-      <HeroSection />
+      <HeroSection/>
 
       <section
         id="explore"
-        className="bg-white py-20"
+        className="relative overflow-hidden bg-white py-15"
       >
         <div className="mx-auto max-w-[92%] px-5">
 
@@ -70,7 +75,7 @@ export default function Home() {
           {loading ? (
             <Loader text="Loading Turfs..." />
           ) : (
-            <div className="relative mt-16">
+            <div className="relative mt-4">
               {/* Left Arrow */}
               <button
                 className="custom-prev absolute left-[-35px] lg:left-[-50px] top-1/2 z-30 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-emerald-500 hover:text-white">
@@ -105,29 +110,50 @@ export default function Home() {
                   },
                 }}
               >
-                {turfs.map((turf) => (
+                {displayTurfs.map((turf, index) => (
                   <SwiperSlide
-                    key={turf.id}
+                    key={turf?.id || `coming-${index}`}
                     style={{
                       display: "flex",
                       justifyContent: "center",
                     }}
                   >
-                    <TurfCard
-                      turf={turf}
-                      onViewDetails={() => {
-                        setSelectedTurf(turf);
-                        setModalMode("details");
-                        setShowModal(true);
-                      }}
-                      onCheckSlot={() => {
-                        setSelectedTurf(turf);
-                        setModalMode("booking");
-                        setShowModal(true);
-                      }}
-                    />
+                    {turf ? (
+                      <TurfCard
+                        turf={turf}
+                        onViewDetails={() => {
+                          setSelectedTurf(turf);
+                          setModalMode("details");
+                          setShowModal(true);
+                        }}
+                        onCheckSlot={() => {
+                          setSelectedTurf(turf);
+                          setModalMode("booking");
+                          setShowModal(true);
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full max-w-[300px] h-[420px] lg:h-[320px] rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 border-2 border-dashed border-slate-300 shadow-md flex flex-col items-center justify-center text-center p-6">
+                        <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow">
+                          🚧
+                        </div>
+
+                        <h3 className="mt-5 text-2xl font-bold text-slate-700">
+                          Coming Soon
+                        </h3>
+
+                        <p className="mt-2 text-slate-500">
+                          A new premium turf will be available here soon.
+                        </p>
+
+                        <span className="mt-5 rounded-full bg-emerald-100 text-emerald-700 px-4 py-2 text-sm font-semibold">
+                          Stay Tuned
+                        </span>
+                      </div>
+                    )}
                   </SwiperSlide>
                 ))}
+                
               </Swiper>
 
               {/* Right Arrow */}
@@ -159,7 +185,7 @@ export default function Home() {
         }
       </section>
 
-       <section id="about">
+      <section id="about">
         <AboutSection />
       </section>
 

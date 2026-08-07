@@ -30,7 +30,7 @@ export default function TurfGallery() {
 
     const loadGallery = async () => {
 
-        const res = await API.post("/turf/gallery/list", {
+        const res = await API.post("/gallery/list", {
 
             turf_id: id,
 
@@ -58,7 +58,7 @@ export default function TurfGallery() {
         if (!result.isConfirmed) return;
 
         try {
-            await API.delete("/turf/gallery/delete", {
+            await API.delete("/gallery/delete", {
                 data: {
                     gallery_id: image.id,
                     image_path: image.image_path,
